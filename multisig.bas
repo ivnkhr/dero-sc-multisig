@@ -7,3 +7,8 @@
 Function Initialize() Uint64
 	
 End Function 
+
+
+Function CreateWallet()
+	
+End Function
