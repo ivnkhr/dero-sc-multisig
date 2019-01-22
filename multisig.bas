@@ -12,6 +12,7 @@ Function Initialize() Uint64
 	40  PRINTF("  *  ")
 	50  PRINTF("  ******************  ")
 	
+	100 RETURN 0
 End Function 
 
 /* Wallet Specific Functions */
@@ -22,6 +23,7 @@ Function WalletCreate()
 	STORE(TXID()) //Your wallet address
 	STORE(TXID()+'_locked',0) //Flag that locks wallet wich allow deposits and disables adding another signers
 	
+	100 RETURN 0
 End Function
 
 
@@ -29,11 +31,12 @@ Function WalletAddSigner(signerAdress)
 	
 	//Signer cannot be added to locked wallet
 	
-	rawSignerAdress = ADDRESS_RAW(signerAdress)
+	LET rawSignerAdress = ADDRESS_RAW(signerAdress)
 	IS_ADDRESS_VALID(rawSignerAdress)
 	STORE(TXID()+'_signer_index',0)
 	STORE(TXID()+'_signer_0',rawSignerAdress)
 	
+	100 RETURN 0
 End Function
 
 
@@ -42,6 +45,7 @@ Function WalletLock()
 	
 	STORE(TXID()+'_locked',1)
 	
+	100 RETURN 0
 End Function
 
 
@@ -57,22 +61,27 @@ Function WalletCreateAndLockWithThreeAdditionalSigners()
 /* Transaction Specific Functions */
 
 //Deposits are only allowed in locked wallets (If wallet is unlocked value will be transfered back)
-Function TransactionDeposit()
+Function TransactionDeposit(value Uint64) Uint64
 
+	IF LOAD(TXID()+'_locked') == 1
 
+	100 RETURN 0
 End Function
 
 
-//Creates a transaction (when last signer will sign this transaction dero will be withdrawn)
+//Creates a transaction 
 Function TransactionWithdraw()
 
-	SEND_DERO_TO_ADDRESS
 	
+	100 RETURN 0
 End Function
 
 
+//Signs a transaction (when last signer will sign this transaction dero will be withdrawn)
 Function TransactionSign()
 
+	SEND_DERO_TO_ADDRESS
 
-
+	
+	100 RETURN 0
 End Function
