@@ -1,4 +1,4 @@
-/* 	DEROMultisig
+/* 	`DEROMultisig`
 	Multisig concept implementation on DVM-BASIC  
 	by @plrspro
 */
