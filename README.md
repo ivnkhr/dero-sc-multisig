@@ -1,2 +1,2 @@
-# `DEROMultisig`: Multisig Implementation SmartContract Hosted On DERO Blockchain
+# `DEROMultisig`: Multisig Implementation SmartContract
 Finite version of multisig wallet concept
