@@ -1,4 +1,4 @@
-/* 	`DEROMultisig`
+/* 	DEROMultisig
 	Multisig concept implementation on DVM-BASIC  
 	by @plrspro
 */
@@ -110,6 +110,25 @@ Function WalletLock(wallet)
 End Function
 
 
+//Deposits are only allowed in locked wallets (If wallet is unlocked value will be transfered back)
+Function WalletDeposit(wallet Uint64, value Uint64) Uint64
+
+	// Check if given `DEROMultisig Wallet` instance exists in database
+	10 IF EXISTS(wallet) THEN GOTO 20
+	11 RETURN Error("Given `DEROMultisig Wallet` instance does not exists in database.")
+	
+	// In order to add additional signer `DEROMultisig Wallet` instance should be unlocked
+	20 IF LOAD(wallet+'_locked') == 0 THEN GOTO 30
+	21 RETURN Error("You are not able to add additional signer to locked `DEROMultisig Wallet` wallet.")
+
+	30 PRINTF("  ---------------------  ")
+
+	100 STORE(wallet+'_balance', LOAD(wallet+'_balance')+value)
+	
+	999 RETURN Info("`DEROMultisig Wallet` ("+wallet+") succsesfully credited with "+value+" DERO.")
+End Function
+
+
 /* Wallet Aliases */
 
 Function WalletCreateAndLockWithOneAdditionalSigner(signer1)
@@ -183,54 +202,57 @@ End Function
 
 /* `DEROMultisig Transaction` Specific Functions */
 /*
-//Deposits are only allowed in locked wallets (If wallet is unlocked value will be transfered back)
-Function TransactionDeposit(wallet Uint64, value Uint64) Uint64
-
-	// Check if given `DEROMultisig Wallet` instance exists in database
-	10 IF EXISTS(wallet) THEN GOTO 20
-	11 RETURN Error("Given `DEROMultisig Wallet` instance does not exists in database.")
-	
-	// In order to add additional signer `DEROMultisig Wallet` instance should be unlocked
-	20 IF LOAD(wallet+'_locked') == 0 THEN GOTO 30
-	21 RETURN Error("You are not able to add additional signer to locked `DEROMultisig Wallet` wallet.")
-
-	30 PRINTF("  ---------------------  ")
-
-	100 STORE(wallet+'_balance', LOAD(wallet+'_balance')+value)
-	
-	999 RETURN 0
-End Function
-
 
 //Creates a `DEROMultisig Transaction` instance ready for signing
-Function TransactionCreateSend(from, destination, amount)
+Function TransactionCreateSend(wallet, destination, amount)
 
 	//Check if wallet exists
 	10 IF EXISTS(wallet) THEN GOTO 100
 	11 RETURN Error("Given `DEROMultisig Wallet` does not exists")
 	
-	//Check if wallet exists
-	20 IF EXISTS(transaction) THEN GOTO 100
-	21 RETURN Error("Given `DEROMultisig Transaction` does not exists")
+	// Check if contract executor have permission to interact with given `DEROMultisig Wallet` instance
+	20 IF IS_ADDRESS_VALID(ADDRESS_RAW(LOAD(wallet))) THEN GOTO 30
+	21 RETURN Error("You have no permission to add signers to this `DEROMultisig Wallet` instance.")
 	
-	100
+	//  Valid amount
+	30 IF LOAD(wallet+'_balance') - amount >= 0 THEN GOTO 40
+	31 RETURN Error("The amount of DERO you requested exceeding amount in `DEROMultisig Wallet` instance.")
 	
-	999 RETURN 0
+	// Valid signer
+	40 DIM signer_iterator, is_valid as Uint64
+	41 LET signer_iterator = LOAD(wallet+'_signer_index')+1
+	42 LET is_valid = 0
+	
+	43 signer_iterator = signer_iterator - 1
+	44 IF LOAD(wallet+'_signer_'+signer_iterator) != SIGNER() THEN GOTO 46
+	45 GOTO 50
+	46 IF signer_iterator > 0 THEN GOTO 45
+	48 RETURN Error("You are not a valid signer of this `DEROMultisig Wallet` instance.")
+	
+	50 PRINTF("  ---------------------  ")
+	
+	100 DIM transaction as String
+	101 LET transaction = TXID()
+	
+	102 STORE('transaction_'+transaction, destination)
+	103 STORE('transaction_'+transaction+'_amount', amount)
+	
+	999 RETURN RETURN Info("`DEROMultisig Transaction` ("+transaction+") succsesfully created.")
 End Function
 
 
 //Alias to `DEROMultisig Transaction`
-Function TransactionCreateWithdraw(from, amount)
+Function TransactionCreateWithdraw(wallet, amount)
 	
-	999 RETURN TransactionSend(from, SIGNER())
+	999 RETURN TransactionSend(wallet, SIGNER())
 End Function
 
 
 //Signs a `DEROMultisig Transaction` (when last signer will sign this transaction dero will be withdrawn)
-Function TransactionSign()
+Function TransactionSign(transaction)
 
 	SEND_DERO_TO_ADDRESS(LOAD("depositor_address" + winner) , LOAD("lotterygiveback")*LOAD("deposit_total")/10000)
 	
-	999 RETURN 0
+	999 RETURN RETURN Info("`DEROMultisig Transaction` ("+transaction+") signed successfully.")
 End Function
 */
