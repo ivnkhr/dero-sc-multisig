@@ -79,7 +79,16 @@ Function WalletAddSigner(wallet, signer)
 	40 IF LOAD(wallet+"_locked") == 0 THEN GOTO 50
 	41 RETURN Error("You are not able to add additional signer to locked `DEROMultisig Wallet` wallet.")
 
-	50 PRINTF("  ---------------------  ")
+	// Signer already a wallet member
+	50 DIM signer_iterator as Uint64
+	51 LET signer_iterator = LOAD(wallet+"_signer_index")+1
+	
+	52 signer_iterator = signer_iterator - 1
+	53 IF LOAD(wallet+"_signer_"+signer_iterator) != SIGNER() THEN GOTO 55
+	54 RETURN Error("You are not a valid signer of this `DEROMultisig Wallet` instance.")
+	55 IF signer_iterator > 0 THEN GOTO 52
+	
+	60 PRINTF("  ---------------------  ")
 	
 	100 DIM next_signer_index as Uint64
 	101 LET next_signer_index = LOAD(wallet+"_signer_index")+1
@@ -225,6 +234,7 @@ Function TransactionCreateSend(wallet, destination, amount)
 	// is Wallet member
 	50 DIM signer_iterator, is_valid as Uint64
 	51 LET signer_iterator = LOAD(wallet+"_signer_index")+1
+	
 	53 signer_iterator = signer_iterator - 1
 	54 IF LOAD(wallet+"_signer_"+signer_iterator) != SIGNER() THEN GOTO 46
 	55 GOTO 50
@@ -286,6 +296,7 @@ Function TransactionSign(transaction)
 	30 DIM signed_iterator, signed_count as Uint64
 	31 LET signed_iterator = LOAD(wallet+"_signer_index")+1
 	32 LET signed_count = 0
+	
 	111 signed_iterator = signed_iterator - 1
 	112 IF EXISTS("transaction_"+transaction+"_signer_"+signed_iterator) == 1 THEN GOTO 114
 	113 signed_count = signed_count + 1
