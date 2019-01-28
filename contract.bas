@@ -13,14 +13,17 @@ End Function
 
 Function Info(info_message String) Uint64 
 
-	10  PRINTF("  +-------------------+  ")
-	20  PRINTF("  |  `DEROMultisig    |  ")
-	30  PRINTF("  |                   |  ")
-	40  PRINTF("  | "+info_message        )
-	50  PRINTF("  |                   |  ")
-	60  PRINTF("  +-------------------+  ")
-	70  PRINTF("  + TXID: "+TXID()        )
-	80  PRINTF("  +-------------------+  ")
+	01 DIM txid as String
+	02 LET txid = TXID()
+
+	10  PRINTF "  +-------------------+  " 
+	20  PRINTF "  |  `DEROMultisig    |  " 
+	30  PRINTF "  |                   |  " 
+	40  PRINTF "  | %s" info_message
+	50  PRINTF "  |                   |  " 
+	60  PRINTF "  +-------------------+  " 
+	70  PRINTF "  + TXID: %s" txid
+	80  PRINTF "  +-------------------+  " 
 	
 	999 RETURN 0
 End Function 
@@ -28,14 +31,17 @@ End Function
 
 Function Error(error_message String) Uint64 
 
-	10  PRINTF("  +-----[ ERROR ]-----+  ")
-	20  PRINTF("  |  `DEROMultisig    |  ")
-	30  PRINTF("  |                   |  ")
-	40  PRINTF("  | "+error_message       )
-	50  PRINTF("  |                   |  ")
-	60  PRINTF("  +-----[ ERROR ]-----+  ")
-	70  PRINTF("  + TXID: "+TXID()        )
-	80  PRINTF("  +-------------------+  ")
+	01 DIM txid as String
+	02 LET txid = TXID()
+
+	10  PRINTF "  +-----[ ERROR ]-----+  " 
+	20  PRINTF "  |  `DEROMultisig    |  " 
+	30  PRINTF "  |                   |  " 
+	40  PRINTF "  | %s" error_message
+	50  PRINTF "  |                   |  " 
+	60  PRINTF "  +-----[ ERROR ]-----+  " 
+	70  PRINTF "  + TXID: %s" txid
+	80  PRINTF "  +-------------------+  " 
 	
 	999 RETURN 1
 End Function 
@@ -44,7 +50,7 @@ End Function
 /* `DEROMultisig Wallet` Specific Functions */
 
 // Creates unlocked `DEROMultisig Wallet` instance (txid represents your wallet id inside of a contract scope)
-Function WalletCreate()
+Function WalletCreate() Uint64
 
 	01 DIM wallet, creator as String
 	02 LET wallet = TXID()
@@ -61,15 +67,15 @@ End Function
 
 
 // Add signer to `DEROMultisig Wallet`
-Function WalletAddSigner(wallet, signer)
+Function WalletAddSigner(wallet String, signer String) Uint64
 
 	// Check if given DERO address (signer) is valid
-	10 IF IS_ADDRESS_VALID(ADDRESS_RAW(signer)) THEN GOTO 20
-	11 RETURN Error("Given signer address is not a valid DERO address.")
+	10 IF IS_ADDRESS_VALID(signer) == 1 THEN GOTO 20
+	11 RETURN Error("Given signer address ("+signer+") is not a valid DERO address.")
 	
 	// Check if given `DEROMultisig Wallet` instance exists in database
-	20 IF EXISTS(wallet) THEN GOTO 30
-	21 RETURN Error("Given `DEROMultisig Wallet` instance does not exists in database.")
+	20 IF EXISTS(wallet) == 1 THEN GOTO 30
+	21 RETURN Error("Given `DEROMultisig Wallet` ("+wallet+") instance does not exists in database.")
 	
 	// Check if contract executor have permission to interact with given `DEROMultisig Wallet` instance
 	30 IF ADDRESS_RAW(LOAD(wallet)) == ADDRESS_RAW(SIGNER()) THEN GOTO 40
@@ -77,23 +83,23 @@ Function WalletAddSigner(wallet, signer)
 	
 	// In order to add additional signer `DEROMultisig Wallet` instance should be unlocked
 	40 IF LOAD(wallet+"_locked") == 0 THEN GOTO 50
-	41 RETURN Error("You are not able to add additional signer to locked `DEROMultisig Wallet` wallet.")
-
-	// Signer already a wallet member
+	41 RETURN Error("You are not able to add additional signer to locked `DEROMultisig Wallet` instance.")
+	
+	//CHECK IF ACCOUNT NOT ALREADY IN THE LIST
 	50 DIM signer_iterator as Uint64
 	51 LET signer_iterator = LOAD(wallet+"_signer_index")+1
 	
-	52 signer_iterator = signer_iterator - 1
-	53 IF LOAD(wallet+"_signer_"+signer_iterator) != SIGNER() THEN GOTO 55
-	54 RETURN Error("You are not a valid signer of this `DEROMultisig Wallet` instance.")
+	52 LET signer_iterator = signer_iterator - 1
+	53 IF ADDRESS_RAW(LOAD(wallet+"_signer_"+signer_iterator)) != ADDRESS_RAW(signer) THEN GOTO 55
+	54 RETURN Error("You cannot add the same signer to `DEROMultisig Wallet` instance twice.")
 	55 IF signer_iterator > 0 THEN GOTO 52
 	
-	60 PRINTF("  ---------------------  ")
+	60 PRINTF "  ---------------------  "
 	
 	100 DIM next_signer_index as Uint64
 	101 LET next_signer_index = LOAD(wallet+"_signer_index")+1
 	
-	110 STORE(wallet+"_signer_"+next_signer_index), ADDRESS_RAW(signer))
+	110 STORE(wallet+"_signer_"+next_signer_index, signer)
 	111 STORE(wallet+"_signer_index", next_signer_index)
 	
 	999 RETURN Info("New signer ("+signer+") added to `DEROMultisig Wallet` ("+wallet+") successfully.")
@@ -101,17 +107,21 @@ End Function
 
 
 //Locks `DEROMultisig Wallet` preventing new signers to be added to this wallet and allows deposits
-Function WalletLock(wallet)
+Function WalletLock(wallet String) Uint64
 	
 	// Check if given `DEROMultisig Wallet` instance exists in database
 	10 IF EXISTS(wallet) THEN GOTO 20
 	11 RETURN Error("Given `DEROMultisig Wallet` instance exists in database.")
 	
-	// In order to lock `DEROMultisig Wallet` instance should be unlocked
-	20 IF LOAD(wallet+"_locked") == 0 THEN GOTO 30
-	21 RETURN Error("You are not able to lock an unlocked `DEROMultisig Wallet` instance.")
+	// Check if contract executor have permission to interact with given `DEROMultisig Wallet` instance
+	20 IF ADDRESS_RAW(LOAD(wallet)) == ADDRESS_RAW(SIGNER()) THEN GOTO 30
+	21 RETURN Error("You have no permission to lock this `DEROMultisig Wallet` instance.")
 	
-	30 PRINTF("  ---------------------  ")
+	// In order to lock `DEROMultisig Wallet` instance should be unlocked
+	30 IF LOAD(wallet+"_locked") == 0 THEN GOTO 40
+	31 RETURN Error("You are not able to lock an unlocked `DEROMultisig Wallet` instance.")
+	
+	40 PRINTF "  ---------------------  "
 	
 	100 STORE(wallet+"_locked", 1)
 	
@@ -120,27 +130,29 @@ End Function
 
 
 //Deposits are only allowed in locked wallets (If wallet is unlocked value will be transfered back)
-Function WalletDeposit(wallet Uint64, value Uint64) Uint64
+Function WalletDeposit(wallet String, value Uint64) Uint64
 
 	// Check if given `DEROMultisig Wallet` instance exists in database
 	10 IF EXISTS(wallet) THEN GOTO 20
 	11 RETURN Error("Given `DEROMultisig Wallet` instance does not exists in database.")
 	
-	// In order to add additional signer `DEROMultisig Wallet` instance should be unlocked
-	20 IF LOAD(wallet+"_locked") == 0 THEN GOTO 30
+	// In order to deposit to `DEROMultisig Wallet` instance it should be locked
+	20 IF LOAD(wallet+"_locked") == 1 THEN GOTO 30
 	21 RETURN Error("You are not able to add additional signer to locked `DEROMultisig Wallet` wallet.")
 
-	30 PRINTF("  ---------------------  ")
+	30 PRINTF "  ---------------------  "
 
-	100 STORE(wallet+"_balance", LOAD(wallet+'_balance')+value)
+	100 DIM new_balance as Uint64
+	101 LET new_balance = LOAD(wallet+"_balance") + value
+	102 STORE(wallet+"_balance", new_balance)
 	
-	999 RETURN Info("`DEROMultisig Wallet` ("+wallet+") succsesfully credited with "+value+" DERO.")
+	999 RETURN Info("`DEROMultisig Wallet` ("+wallet+") succsesfully credited with "+value+" DERO. Total equals to "+new_balance+" DERO.")
 End Function
 
 
 /* Wallet Aliases */
 
-Function WalletCreateAndLockWithOneAdditionalSigner(signer1)
+Function WalletCreateAndLockWithOneAdditionalSigner(signer1 String) Uint64
 
 	01 DIM wallet as String
 	02 LET wallet = TXID()
@@ -154,13 +166,13 @@ Function WalletCreateAndLockWithOneAdditionalSigner(signer1)
 	30 IF WalletLock(wallet) == 0 THEN GOTO 40
 	31 RETURN 1
 	
-	40 PRINTF("  ---------------------  ")
+	40 PRINTF "  ---------------------  "
 	
 	999 RETURN 0
 End Function
 
 
-Function WalletCreateAndLockWithTwoAdditionalSigners(signer1, signer2)
+Function WalletCreateAndLockWithTwoAdditionalSigners(signer1 String, signer2 String) Uint64
 
 	01 DIM wallet as String
 	02 LET wallet = TXID()
@@ -177,13 +189,13 @@ Function WalletCreateAndLockWithTwoAdditionalSigners(signer1, signer2)
 	40 IF WalletLock(wallet) == 0 THEN GOTO 50
 	41 RETURN 1
 	
-	50 PRINTF("  ---------------------  ")
+	50 PRINTF "  ---------------------  "
 	
 	999 RETURN 0
 End Function
 
 
-Function WalletCreateAndLockWithThreeAdditionalSigners(signer1, signer2, signer3)
+Function WalletCreateAndLockWithThreeAdditionalSigners(signer1 String, signer2 String, signer3 String) Uint64
 
 	01 DIM wallet as String
 	02 LET wallet = TXID()
@@ -203,14 +215,13 @@ Function WalletCreateAndLockWithThreeAdditionalSigners(signer1, signer2, signer3
 	50 IF WalletLock(wallet) == 0 THEN GOTO 60
 	51 RETURN 1
 	
-	60 PRINTF("  ---------------------  ")
+	60 PRINTF "  ---------------------  "
 	
 	999 RETURN 0
 End Function
 
 
 /* `DEROMultisig Transaction` Specific Functions */
-/*
 
 //Creates a `DEROMultisig Transaction` instance ready for signing
 Function TransactionCreateSend(wallet, destination, amount)
@@ -235,11 +246,11 @@ Function TransactionCreateSend(wallet, destination, amount)
 	50 DIM signer_iterator, is_valid as Uint64
 	51 LET signer_iterator = LOAD(wallet+"_signer_index")+1
 	
-	53 signer_iterator = signer_iterator - 1
-	54 IF LOAD(wallet+"_signer_"+signer_iterator) != SIGNER() THEN GOTO 46
-	55 GOTO 50
-	56 IF signer_iterator > 0 THEN GOTO 43
-	58 RETURN Error("You are not a valid signer of this `DEROMultisig Wallet` instance.")
+	52 signer_iterator = signer_iterator - 1
+	53 IF LOAD(wallet+"_signer_"+signer_iterator) != SIGNER() THEN GOTO 55
+	54 GOTO 60
+	55 IF signer_iterator > 0 THEN GOTO 52
+	56 RETURN Error("You are not a valid signer of this `DEROMultisig Wallet` instance.")
 	
 	60 PRINTF("  ---------------------  ")
 	
@@ -274,38 +285,39 @@ Function TransactionSign(transaction)
 	21 RETURN Error("Given `DEROMultisig Transaction` does not exists")
 	
 	// Valid amount is still valid
-	30 IF LOAD(LOAD("transaction_"+transaction+"_wallet")+"_balance") - LOAD("transaction_"+transaction+"_amount") >= 0 THEN GOTO 30
+	30 IF LOAD(LOAD("transaction_"+transaction+"_wallet")+"_balance") - LOAD("transaction_"+transaction+"_amount") >= 0 THEN GOTO 40
 	31 STORE("transaction_"+transaction+"_executed", 2)
 	32 RETURN Error("The amount of DERO you requested exceeding amount in `DEROMultisig Wallet` instance, transaction no longer valid.")
 	
 	// Wallet member
-	30 DIM signer_iterator as Uint64
-	31 LET signer_iterator = LOAD(wallet+"_signer_index")+1
-	32 signer_iterator = signer_iterator - 1
-	33 IF LOAD(wallet+"_signer_"+signer_iterator) != SIGNER() THEN GOTO 35
-	34 GOTO 40
-	35 IF signer_iterator > 0 THEN GOTO 32
-	36 RETURN Error("You are not a valid signer of this `DEROMultisig Wallet` instance.")
+	40 DIM signer_iterator as Uint64
+	41 LET signer_iterator = LOAD(wallet+"_signer_index")+1
 	
-	40 PRINTF("  ---------------------  ")
+	42 LET signer_iterator = signer_iterator - 1
+	43 IF LOAD(wallet+"_signer_"+signer_iterator) != SIGNER() THEN GOTO 45
+	44 GOTO 50
+	45 IF signer_iterator > 0 THEN GOTO 42
+	46 RETURN Error("You are not a valid signer of this `DEROMultisig Wallet` instance.")
+	
+	50 PRINTF("  ---------------------  ")
 	
 	//Sign tourself
 	100 STORE("transaction_"+transaction+"_signer_"+signer_iterator, BLID()) //First signer will be executors address
 	
 	// Check if all signers signed this tranaction, if so execute and close transaction
-	30 DIM signed_iterator, signed_count as Uint64
-	31 LET signed_iterator = LOAD(wallet+"_signer_index")+1
-	32 LET signed_count = 0
+	110 DIM signed_iterator, signed_count as Uint64
+	111 LET signed_iterator = LOAD(wallet+"_signer_index") + 1
+	112 LET signed_count = 0
 	
-	111 signed_iterator = signed_iterator - 1
-	112 IF EXISTS("transaction_"+transaction+"_signer_"+signed_iterator) == 1 THEN GOTO 114
-	113 signed_count = signed_count + 1
-	114 IF signed_iterator > 0 THEN GOTO 33
-	115 IF signed_count != LOAD(wallet+"_signer_index")+1 THEN GOTO 1000
-	116 SEND_DERO_TO_ADDRESS(ADDRESS_RAW(LOAD("transaction_"+transaction)))
-	104 STORE("transaction_"+transaction+"_executed", 1)
-	117 RETURN RETURN Info("`DEROMultisig Transaction` ("+transaction+") signed by last member and executed.")
+	120 LET signed_iterator = signed_iterator - 1
+	121 IF EXISTS("transaction_"+transaction+"_signer_"+signed_iterator) == 1 THEN GOTO 114
+	122 LET signed_count = signed_count + 1
+	123 IF signed_iterator > 0 THEN GOTO 33
+	124 IF signed_count != LOAD(wallet+"_signer_index")+1 THEN GOTO 1000
+	125 SEND_DERO_TO_ADDRESS(ADDRESS_RAW(LOAD("transaction_"+transaction)))
+	126 STORE("transaction_"+transaction+"_executed", 1)
+	127 RETURN RETURN Info("`DEROMultisig Transaction` ("+transaction+") signed by last member and executed.")
 	
 	999 RETURN RETURN Info("`DEROMultisig Transaction` ("+transaction+") signed successfully.")
 End Function
-*/
+
