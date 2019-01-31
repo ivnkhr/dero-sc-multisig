@@ -78,6 +78,12 @@
 		text-decoration: underline;
 		border: 2px solid #999;
 	  }
+	  .tbl{
+	  
+	  width: 100%;
+	  
+	  }
+
     </style>
 	<script>
 	// https://plrspro.github.io/dero-sc-multisig/contract.bas	
@@ -160,17 +166,55 @@
 	</script>
   </head>
   <body>
+  
+  <table class="tbl"><tr><td>
+  
     <div class="contract-box">
-      <h2>`dero multisig`</h2>
-	  
-	  <div class="input-state">
-		  <span>Daemon rpc path</span>
-		  <input type="text" class="daemon_rpc" value="http://127.0.0.1:30306/json_rpc"/>
-	  </div>
+      <h2>`dero multisig interact`</h2>
 	  
 	  <div class="input-state">
 		  <span>Wallet rpc path</span>
 		  <input type="text" class="wallet_rpc" value="http://127.0.0.1:30307/json_rpc"/>
+	  </div>
+	  
+	  <div class="input-state">
+		  <span>SCID</span>
+		  <input disabled type="text" id="scid" value="4d8a11105e809e756cc664fa36b895aa31bf39423b0527a3d83d12932b51531f"/>
+	  </div>
+	  
+	  <br/>
+	   <h2>`availiable operations`</h2>
+	  <div class="methods">
+		<div class="button" data-command="WalletCreate">Setup Wallet</div>
+		<div class="button" data-command="WalletAddSigner">Add Signer to a Wallet</div>
+		<div class="button" data-command="WalletLock">Finalize Wallet</div>
+		<br/>
+		<div class="button" data-command="TransactionCreate">Send Funds</div>
+		<div class="button" data-command="TransactopnSign">Sign Transaction</div>
+	  </div>
+	  
+	  <section id="confirm" style="display: none;">
+	  <br/>
+	   <h2>`confirm interaction`</h2>
+	  <div class="methods">
+	  
+	  
+		<div class="button" data-command="Execute">Submit Transaction</div>
+	  </div>
+	  </section>
+	  
+    </div>
+	
+	</td>
+	<td>
+	
+	
+    <div class="contract-box">
+      <h2>`dero multisig verify`</h2>
+	  
+	  <div class="input-state">
+		  <span>Daemon rpc path</span>
+		  <input type="text" class="daemon_rpc" value="http://127.0.0.1:30306/json_rpc"/>
 	  </div>
 	  
 	  <div class="input-state">
@@ -197,5 +241,12 @@
 	  </section>
 	  
     </div>
+	
+	
+	</td>
+	</tr>
+	</table>
+	
+	
   </body>
 </html>
