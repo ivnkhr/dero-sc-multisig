@@ -30,6 +30,7 @@
 		color: black;
 	  }
 	  .input-state{
+		margin: 5px;
 		margin-bottom: 10px;
 	  }
 	  .input-state span{
@@ -39,7 +40,7 @@
 		z-index: 999;
 	  }
 	  .input-state input{
-		margin-top: -4px;
+		margin-top: 1px;
 		font-family: 'Sarabun', sans-serif;
 		background-color: #ccc;
 		border: 0;
@@ -83,6 +84,15 @@
 	  width: 100%;
 	  
 	  }
+	  .pre{
+	  font-family: 'Calibri', sans-serif;
+	      overflow-wrap: break-word;
+    text-overflow: ellipsis;
+	background-color: black;
+	border: 1px solid lime;
+	color: white;
+	padding: 5px;
+	  }
 
     </style>
 	<script>
@@ -93,19 +103,7 @@
 		
 			scid = $('#scid').val();
 		
-			copm_tx = {
-				"mixin":5,
-				"get_tx_key":true,
-				"sc_tx":
-				{
-					"entrypoint":"WalletCreateAndLockWithOneAdditionalSigner",
-					"scid":scid,
-					"params":
-					{ 
-						"signer1": "{{wallet_addr2}}"
-					} 
-				}
-			};
+
 		
 			 $.ajax({
 				url: $('.wallet_rpc').val(), 
@@ -132,15 +130,99 @@
 			
 			if( sc == 'Execute' ){
 				command = $(this).data('command');
-				wallet_call(active_cmd,{});
-				$('#confirm').hide();
+				//wallet_call(active_cmd,{});
+				
+				scid = $('#scid').val();
+				
+				copm_tx = {
+					"mixin":5,
+					"get_tx_key":true,
+					"sc_tx":
+					{
+						"entrypoint":active_cmd,
+						"scid":scid,
+					}
+				};
+				
+				/*
+				vc_val = $('#params .params#value').val()
+				if(vc_val){
+					copm_tx.sc_tx.value = vc_val;
+				}
+				
+				copm_tx.sc_tx.params = {};
+				*/
+				
+				copm_tx.sc_tx.params = {};
+				
+				$( "#params .params" ).each(function( index ) {
+				  console.log( $( this ).attr('id') + ": " + $( this ).val() );
+				  
+				  dc_val = '';
+				  if( $( this ).attr('type') == 'number' ){
+					dc_val = parseInt($( this ).val());
+				  }else{
+					dc_val = $( this ).val();
+				  }
+				  
+				  	//vc_val = ;
+					if($( this ).attr('id')=='value'){
+						copm_tx.sc_tx.value = parseInt($( this ).val())*1000000000000;
+					}else{
+					  copm_tx.sc_tx.params[$( this ).attr('id')]=  dc_val;
+					}
+				});
+				
+				if( Object.keys(copm_tx.sc_tx.params).length === 0 ) delete copm_tx.sc_tx.params;
+				
+				//$('#params .params').each
+				
+				
+				$('.pre').text("curl -X POST "+($('.wallet_rpc').val())+" -H 'Content-Type: application/json' -d '{\"jsonrpc\":\"2.0\",\"id\":\"0\",\"method\":\"transfer_split\",\"params\":{"+(JSON.stringify(copm_tx))+"}");
+				
+				$('.pre').show();
 			}else{
 				active_cmd = sc;
+				$('#params').html("");
 				if(active_cmd){
+					$('.pre').hide();
 					$('#confirm').show();
+					params = $(this).data('params');
+					if(params){
+						a = params.split(',');
+						for (i = 0; i < a.length; i++) {
+							def = (a[i]);
+							type = 'text';
+							if( def == 'value' || def == 'amount' ){
+								type = 'number';
+							}else{
+							
+							}
+							lable = a[i];
+							if(lable=='wallet'){
+								lable = 'wallet (contract wallet id)';
+							}
+							if(lable=='signer'){
+								lable = 'signer (valid DERO address)';
+							}
+							if(lable=='destination'){
+								lable = 'destination (valid DERO address)';
+							}
+							if(lable=='value' || lable=='amount'){
+								lable = 'amount (in DERO)';
+							}
+							if(lable=='transaction'){
+								lable = 'transaction (contract transaction id)';
+							}
+							$('#params').append('<div class="input-state"><span>'+(lable)+'</span><input type="'+type+'" class="params" id="'+a[i]+'" value=""/></div>');
+						}
+					}
 				}
 			}
 		});
+		
+		//curl -X POST http://127.0.0.1:30309/json_rpc -H 'Content-Type: application/json' -d '{"jsonrpc":"2.0","id":"0","method":"transfer_split","params":{"mixin":5,"get_tx_key":true,"sc_tx":{"entrypoint":"Lottery","scid":"ab82caa18753efa0f76e7266af7fdd7f11e0ada5e135bd63f1cd823f5e2c2fdc","value":4000000000000}}}'
+		
 		/*
 		{
 			"jsonrpc":"2.0",
@@ -167,18 +249,18 @@
   </head>
   <body>
   
-  <table class="tbl"><tr><td>
+  <table class="tbl"><tr><td valign="top">
   
     <div class="contract-box">
       <h2>`dero multisig interact`</h2>
 	  
 	  <div class="input-state">
-		  <span>Wallet rpc path</span>
+		  <span>wallet rpc path</span>
 		  <input type="text" class="wallet_rpc" value="http://127.0.0.1:30307/json_rpc"/>
 	  </div>
 	  
 	  <div class="input-state">
-		  <span>SCID</span>
+		  <span>scid</span>
 		  <input disabled type="text" id="scid" value="4d8a11105e809e756cc664fa36b895aa31bf39423b0527a3d83d12932b51531f"/>
 	  </div>
 	  
@@ -186,58 +268,68 @@
 	   <h2>`availiable operations`</h2>
 	  <div class="methods">
 		<div class="button" data-command="WalletCreate">Setup Wallet</div>
-		<div class="button" data-command="WalletAddSigner">Add Signer to a Wallet</div>
-		<div class="button" data-command="WalletLock">Finalize Wallet</div>
+		<div class="button" data-command="WalletAddSigner" data-params="wallet,signer">Add Signer to a Wallet</div>
+		<div class="button" data-command="WalletLock" data-params="wallet">Finalize Wallet</div>
+		<div class="button" data-command="WalletDeposit" data-params="wallet,value">Deposit Funds to a Wallet</div>
 		<br/>
-		<div class="button" data-command="TransactionCreate">Send Funds</div>
-		<div class="button" data-command="TransactopnSign">Sign Transaction</div>
+		<div class="button" data-command="TransactionCreateSendHumanReadableAmount" data-params="wallet,destination,amount">Send Funds</div>
+		<div class="button" data-command="TransactionSign" data-params="transaction">Sign Transaction</div>
 	  </div>
 	  
 	  <section id="confirm" style="display: none;">
 	  <br/>
 	   <h2>`confirm interaction`</h2>
+
 	  <div class="methods">
 	  
+	  <div id="params"></div>
 	  
-		<div class="button" data-command="Execute">Submit Transaction</div>
+	  <div class="button" data-command="Execute">Construct Transaction</div>
 	  </div>
+	  <br/>
+<div class="pre" style="display: none;">
+
+</div>
+		<!--<div class="button" data-command="Execute">Submit Transaction</div>-->
+
 	  </section>
 	  
     </div>
 	
 	</td>
-	<td>
+	<td valign="top">
 	
 	
     <div class="contract-box">
       <h2>`dero multisig verify`</h2>
 	  
 	  <div class="input-state">
-		  <span>Daemon rpc path</span>
+		  <span>daemon rpc path</span>
 		  <input type="text" class="daemon_rpc" value="http://127.0.0.1:30306/json_rpc"/>
 	  </div>
 	  
 	  <div class="input-state">
-		  <span>SCID</span>
+		  <span>scid</span>
 		  <input disabled type="text" id="scid" value="4d8a11105e809e756cc664fa36b895aa31bf39423b0527a3d83d12932b51531f"/>
 	  </div>
 	  
 	  <br/>
 	   <h2>`availiable operations`</h2>
 	  <div class="methods">
-		<div class="button" data-command="WalletCreate">Setup Wallet</div>
-		<div class="button" data-command="WalletAddSigner">Add Signer to a Wallet</div>
-		<div class="button" data-command="WalletLock">Finalize Wallet</div>
+		<div class="button" data-command="WalletCreate">view Wallet Status</div>
+		<div class="button" data-command="WalletLock">view Transaction Status</div>
 	  </div>
 	  
-	  <section id="confirm" style="display: none;">
+	  <section id="confirm">
 	  <br/>
-	   <h2>`confirm interaction`</h2>
-	  <div class="methods">
+	   <h2>`contract state`</h2>
+
 	  
-	  
-		<div class="button" data-command="Execute">Submit Transaction</div>
-	  </div>
+<div class="pre">
+{"jsonrpc":"2.0","error":{"code":-32600,"message":"Invalid Request"}}
+</div>
+		<!--<div class="button" data-command="Execute">Submit Transaction</div>-->
+
 	  </section>
 	  
     </div>
