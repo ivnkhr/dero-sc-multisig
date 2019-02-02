@@ -261,6 +261,10 @@ Function TransactionCreateSend(wallet, destination, amount)
 	103 STORE("transaction_"+transaction+"_amount", amount)
 	103 STORE("transaction_"+transaction+"_wallet", wallet)
 	104 STORE("transaction_"+transaction+"_executed", 0) // 0 - transaction open, 1 - transaction successfully executed, 2 - transaction rejected (insuffisient balance)
+	105 STORE("transaction_"+transaction+"_signatures_count", 0)
+	
+	//Presign transaction with your signature to save executions
+	106 TransactionSign(transaction)
 	
 	999 RETURN RETURN Info("`DEROMultisig Transaction` ("+transaction+") succsesfully created.")
 End Function
@@ -336,11 +340,12 @@ Function TransactionSign(transaction)
 	121 IF EXISTS("transaction_"+transaction+"_signer_"+signed_iterator) == 0 THEN GOTO 123
 	122 LET signed_count = signed_count + 1
 	123 IF signed_iterator > 0 THEN GOTO 120
-	124 IF signed_count != LOAD(wallet+"_signer_index")+1 THEN GOTO 999
+	124 STORE("transaction_"+transaction+"_signatures_count", signed_count)
+	125 IF signed_count != LOAD(wallet+"_signer_index")+1 THEN GOTO 999
 	
-	125 SEND_DERO_TO_ADDRESS(LOAD("transaction_"+transaction), LOAD("transaction_"+transaction+"_amount"))
-	126 STORE("transaction_"+transaction+"_executed", 1)
-	127 STORE(LOAD("transaction_"+transaction+"_wallet")+"_balance", wallet_balance - LOAD("transaction_"+transaction+"_amount"))
+	126 SEND_DERO_TO_ADDRESS(LOAD("transaction_"+transaction), LOAD("transaction_"+transaction+"_amount"))
+	127 STORE("transaction_"+transaction+"_executed", 1)
+	128 STORE(LOAD("transaction_"+transaction+"_wallet")+"_balance", wallet_balance - LOAD("transaction_"+transaction+"_amount"))
 	
 	998 RETURN RETURN Info("`DEROMultisig Transaction` ("+transaction+") signed by last member and executed.")
 	
