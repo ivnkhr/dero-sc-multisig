@@ -158,19 +158,28 @@
            $('.pre2').html(text);
          }else{
            
-           text = latest_call+"<br/>";
+           text = latest_call+": "+last_subj+"<br/>";
            
            if( data.txs[0].sc_keys[Object.keys(data.txs[0].sc_keys)[0]] == "" ){
              text += "Not Found (your transaction might not get mined yet, please wait and retry)";
            }else{
-             text += "Original creator: "+(data.txs[0].sc_keys[last_subj]);
-             text += "Original creator: "+(data.txs[0].sc_keys[last_subj]);
-             text += "Original creator: "+(data.txs[0].sc_keys[last_subj]);
-             text += "Original creator: "+(data.txs[0].sc_keys[last_subj]);
-             text += "Original creator: "+(data.txs[0].sc_keys[last_subj]);
-             text += "Original creator: "+(data.txs[0].sc_keys[last_subj]);
-             text += "Original creator: "+(data.txs[0].sc_keys[last_subj]);
-             
+             text += "<br/>Original creator: "+(data.txs[0].sc_keys[last_subj]);
+             text += "<hr/>Can add new signers: "+( (parseInt(data.txs[0].sc_keys[last_subj+'_locked'])?'No':'Yes')  );
+             text += "<br/>Can deposit: "+( (parseInt(data.txs[0].sc_keys[last_subj+'_locked'])?'Yes':'No (you need to lock wallet to be able to deposit)')  );
+             text += "<br/>Balance: "+(data.txs[0].sc_keys[last_subj+'_balance'])+" DERO";
+             text += "<br/>Signer count: "+( parseInt(data.txs[0].sc_keys[last_subj+'_signer_index'])+1 );
+             text += "<hr/>Signer List:<br/>";
+             text += "<br/> - "+(data.txs[0].sc_keys[last_subj+'_signer_0']);
+             text += "<br/> - "+(data.txs[0].sc_keys[last_subj+'_signer_1']);
+             text += "<br/> - "+(data.txs[0].sc_keys[last_subj+'_signer_2']);
+             text += "<br/> - "+(data.txs[0].sc_keys[last_subj+'_signer_3']);
+             text += "<br/> - "+(data.txs[0].sc_keys[last_subj+'_signer_4']);
+             text += "<br/> - "+(data.txs[0].sc_keys[last_subj+'_signer_5']);
+             text += "<br/> - "+(data.txs[0].sc_keys[last_subj+'_signer_6']);
+             text += "<br/> - "+(data.txs[0].sc_keys[last_subj+'_signer_7']);
+             text += "<br/> - "+(data.txs[0].sc_keys[last_subj+'_signer_8']);
+             text += "<br/> - "+(data.txs[0].sc_keys[last_subj+'_signer_9']);   
+             text += "<br/> - "+(data.txs[0].sc_keys[last_subj+'_signer_10']);
              //text += JSON.stringify(data.txs[0].sc_keys).split(last_subj).join("*");
            }
 
@@ -235,6 +244,8 @@
         props.push(subj+"_signer_6");
         props.push(subj+"_signer_7");
         props.push(subj+"_signer_8");
+        props.push(subj+"_signer_9");
+        props.push(subj+"_signer_10");
         get_tx_sc_val(props);
       }
       if($(this).attr('data-command-act')=="Transaction"){
