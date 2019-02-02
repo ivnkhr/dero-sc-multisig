@@ -97,8 +97,102 @@
     </style>
 	<script>
 	// https://plrspro.github.io/dero-sc-multisig/contract.bas	
+  
+  wallet_rpc = '';
+  daemon_rpc = 'http://127.0.0.1:30306/';
+  scid = '4d8a11105e809e756cc664fa36b895aa31bf39423b0527a3d83d12932b51531f';
+  //http://206.189.61.167:30306/json_rpc
+  
+  var latest_call = '';
+  var last_subj = '';
+  
 	$(document).ready(function(){
 		
+    $('.daemon_rpc').val(daemon_rpc);
+    $('.scid').each(function(){
+      $(this).val(scid);
+    });
+    //ping daemon
+    test_remote_daemon = 'http://206.189.61.167:30306/';
+    $.ajax({
+         url: test_remote_daemon+'json_rpc',
+         success: function(result){
+            $('.daemon_rpc').val(test_remote_daemon);
+            get_tx_sc_val([]);
+         },     
+         error: function(result){
+            get_tx_sc_val([]);
+         }
+      });
+    
+    //["acba33e3530c653e379d0fe58636fa6622b7cec7bf9082a3e96f4f0053564bb8_locked"]
+    
+    function get_tx_sc_val(keys){
+      
+      $('.pre2').html("Loading...");
+      
+      copm_tx = {
+        "txs_hashes": [scid],
+        "sc_keys": keys
+      }
+      
+      
+      $.ajax({
+       url: $('.daemon_rpc').val()+"gettransactions", 
+
+       data: JSON.stringify (copm_tx),  // id is needed !!
+
+       type:"POST",
+
+       dataType:"json",
+       success:  function (data)       { 
+       
+         if(keys.length==0){
+           text  = "Contract balance: "+(data.txs[0].sc_balance/1000000000000)+' DERO<br/>';
+           text += "Deployed at "+data.txs[0].block_height+" height"+"<hr/>";
+           text += 'Methods availiable:<br/>';
+           Object.keys(data.txs[0].sc.F).forEach(function(key) {
+             text += key+"<br/>";
+           });
+           
+           $('.pre2').html(text);
+         }else{
+           
+           text = latest_call+"<br/>";
+           
+           if( data.txs[0].sc_keys[Object.keys(data.txs[0].sc_keys)[0]] == "" ){
+             text += "Not Found (your transaction might not get mined yet, please wait and retry)";
+           }else{
+             text += "Original creator: "+(data.txs[0].sc_keys[last_subj]);
+             text += "Original creator: "+(data.txs[0].sc_keys[last_subj]);
+             text += "Original creator: "+(data.txs[0].sc_keys[last_subj]);
+             text += "Original creator: "+(data.txs[0].sc_keys[last_subj]);
+             text += "Original creator: "+(data.txs[0].sc_keys[last_subj]);
+             text += "Original creator: "+(data.txs[0].sc_keys[last_subj]);
+             text += "Original creator: "+(data.txs[0].sc_keys[last_subj]);
+             
+             //text += JSON.stringify(data.txs[0].sc_keys).split(last_subj).join("*");
+           }
+
+           $('.pre2').html(text);
+         }
+      
+         //alert("The result is : " + );
+         
+       
+       },
+       error: function (err)  { $('.pre2').text('Failed to communicate with daemon'); }
+
+     });     
+      
+      //prep_data = "{\"jsonrpc\":\"2.0\",\"id\":\"0\",\"method\":\"gettransactions\",\"params\":"+(JSON.stringify(copm_tx))+"}";
+    //  prep_data = JSON.stringify(prep_data);
+      //$('.pre').text("curl -X GET "+($('.daemon_rpc').val())+" -H \"Content-Type: application/json\" -d "+prep_data);
+      
+    }
+    
+    
+    
 		function wallet_call()	{
 		
 			scid = $('#scid').val();
@@ -123,7 +217,38 @@
 			});
 		};
 		
-		$('.button').click(function(){
+    $('.act2').click(function(){
+      
+      latest_call = $(this).attr('data-command-act');
+      
+      var subj = prompt("Please enter your `dero multisig walelt` id", "");
+      last_subj = subj;
+      
+      if($(this).attr('data-command-act')=="Wallet"){
+        props = [subj,subj+'_balance',subj+'_locked',subj+'_signer_index'];
+        props.push(subj+"_signer_0");
+        props.push(subj+"_signer_1");
+        props.push(subj+"_signer_2");
+        props.push(subj+"_signer_3");
+        props.push(subj+"_signer_4");
+        props.push(subj+"_signer_5");
+        props.push(subj+"_signer_6");
+        props.push(subj+"_signer_7");
+        props.push(subj+"_signer_8");
+        get_tx_sc_val(props);
+      }
+      if($(this).attr('data-command-act')=="Transaction"){
+        get_tx_sc_val([
+          'transaction_'+subj,
+          'transaction_'+subj+'_amount',
+          'transaction_'+subj+'_wallet',
+          'transaction_'+subj+'_executed'
+        ]);
+      }
+      
+    });
+    
+		$('.act1').click(function(){
 			//$(this).toggleClass('active');
 			sc = $(this).data('command');
 			
@@ -177,15 +302,16 @@
 				
 				//$('#params .params').each
 				
+        prep_data = "{\"jsonrpc\":\"2.0\",\"id\":\"0\",\"method\":\"transfer_split\",\"params\":"+(JSON.stringify(copm_tx))+"}";
+				prep_data = JSON.stringify(prep_data);
+				$('.pre1').text("curl -X POST "+($('.wallet_rpc').val())+" -H \"Content-Type: application/json\" -d "+prep_data);
 				
-				$('.pre').text("curl -X POST "+($('.wallet_rpc').val())+" -H 'Content-Type: application/json' -d '{\"jsonrpc\":\"2.0\",\"id\":\"0\",\"method\":\"transfer_split\",\"params\":{"+(JSON.stringify(copm_tx))+"}");
-				
-				$('.pre').show();
+				$('.pre1').show();
 			}else{
 				active_cmd = sc;
 				$('#params').html("");
 				if(active_cmd){
-					$('.pre').hide();
+					$('.pre1').hide();
 					$('#confirm').show();
 					params = $(this).data('params');
 					if(params){
@@ -261,19 +387,22 @@
 	  
 	  <div class="input-state">
 		  <span>scid</span>
-		  <input disabled type="text" id="scid" value="4d8a11105e809e756cc664fa36b895aa31bf39423b0527a3d83d12932b51531f"/>
+		  <input disabled type="text" id="scid" class="scid" value=""/>
 	  </div>
 	  
 	  <br/>
 	   <h2>`availiable operations`</h2>
 	  <div class="methods">
-		<div class="button" data-command="WalletCreate">Setup Wallet</div>
-		<div class="button" data-command="WalletAddSigner" data-params="wallet,signer">Add Signer to a Wallet</div>
-		<div class="button" data-command="WalletLock" data-params="wallet">Finalize Wallet</div>
-		<div class="button" data-command="WalletDeposit" data-params="wallet,value">Deposit Funds to a Wallet</div>
+      <h5><center>wallet commands</center></h5>
+		<div class="button act1" data-command="WalletCreate">1. Setup Wallet</div>
+		<div class="button act1" data-command="WalletAddSigner" data-params="wallet,signer">2. Add Signer to a Wallet</div>
+		<div class="button act1" data-command="WalletLock" data-params="wallet">3. Finalize Wallet</div>
+		<div class="button act1" data-command="WalletDeposit" data-params="wallet,value">4. Deposit Funds to a Wallet</div>
 		<br/>
-		<div class="button" data-command="TransactionCreateSendHumanReadableAmount" data-params="wallet,destination,amount">Send Funds</div>
-		<div class="button" data-command="TransactionSign" data-params="transaction">Sign Transaction</div>
+      <h5><center>transaction commands</center></h5>
+		<div class="button act1" data-command="TransactionCreateSendHumanReadableAmount" data-params="wallet,destination,amount">Send Funds</div>
+    <center>or</center>
+		<div class="button act1" data-command="TransactionSign" data-params="transaction">Sign Transaction</div>
 	  </div>
 	  
 	  <section id="confirm" style="display: none;">
@@ -284,10 +413,10 @@
 	  
 	  <div id="params"></div>
 	  
-	  <div class="button" data-command="Execute">Construct Transaction</div>
+	  <div class="button act1" data-command="Execute">Construct Transaction</div>
 	  </div>
 	  <br/>
-<div class="pre" style="display: none;">
+<div class="pre pre1" style="display: none;">
 
 </div>
 		<!--<div class="button" data-command="Execute">Submit Transaction</div>-->
@@ -305,19 +434,19 @@
 	  
 	  <div class="input-state">
 		  <span>daemon rpc path</span>
-		  <input type="text" class="daemon_rpc" value="http://127.0.0.1:30306/json_rpc"/>
+		  <input type="text" class="daemon_rpc" value=""/>
 	  </div>
 	  
 	  <div class="input-state">
 		  <span>scid</span>
-		  <input disabled type="text" id="scid" value="4d8a11105e809e756cc664fa36b895aa31bf39423b0527a3d83d12932b51531f"/>
+		  <input disabled type="text" id="scid" class="scid" value=""/>
 	  </div>
 	  
 	  <br/>
 	   <h2>`availiable operations`</h2>
 	  <div class="methods">
-		<div class="button" data-command="WalletCreate">view Wallet Status</div>
-		<div class="button" data-command="WalletLock">view Transaction Status</div>
+		<div class="button act2" data-command-act="Wallet">View Wallet Status</div>
+		<div class="button act2" data-command-act="Transaction">View Transaction Status</div>
 	  </div>
 	  
 	  <section id="confirm">
@@ -325,8 +454,8 @@
 	   <h2>`contract state`</h2>
 
 	  
-<div class="pre">
-{"jsonrpc":"2.0","error":{"code":-32600,"message":"Invalid Request"}}
+<div class="pre pre2">
+Loading...
 </div>
 		<!--<div class="button" data-command="Execute">Submit Transaction</div>-->
 
