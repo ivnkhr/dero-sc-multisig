@@ -11,6 +11,8 @@ https://forum.dero.io/t/wip-dero-multisig-smart-contract/942
 
 
 You can run your electron interface app with
-> cd ../interface
-> npm install
-> npm run start
+```
+cd ../interface
+npm install
+npm run start
+```
