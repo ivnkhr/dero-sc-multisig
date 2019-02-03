@@ -1,0 +1,512 @@
+<html>
+  <head>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous" onload="window.$ = window.jQuery = module.exports;"></script>
+  	<link href="https://fonts.googleapis.com/css?family=Major+Mono+Display|Sarabun" rel="stylesheet">
+  	<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.7.3/p5.min.js"></script>
+    <style>
+    
+      body{
+        background-color: #333;
+        font-family: 'Major Mono Display', monospace;
+      }
+      
+      .row{
+        display: flex;
+      }
+      
+      .col{
+        flex: 50%;
+      }
+      
+  	  .contract-box{
+        padding: 20px;
+        margin: 20px auto;
+        border: 2px solid white;
+        box-shadow: 0px 0px 6px 0px black;
+        width: 560px;
+        background-color: #eee;
+  	  }
+      
+  	  h2{
+        color: black;
+  	  }
+      
+  	  .input-state{
+    		margin: 5px;
+    		margin-bottom: 10px;
+  	  }
+      
+  	  .input-state span{
+    		font-family: 'Sarabun', sans-serif;
+    		color: #999;
+    		position: relative;
+    		z-index: 999;
+  	  }
+      
+  	  .input-state input{
+    		margin-top: 1px;
+    		font-family: 'Sarabun', sans-serif;
+    		background-color: #ccc;
+    		border: 0;
+    		padding: 5px;
+    		border-bottom: 2px solid white;
+    		width: 100%;
+  	  }
+  	  
+  	  .methods{
+    		border-radius: 6px;
+    		padding: 5px;
+    		border: 2px solid white;
+    		background-color: #e3e3e3;
+  	  }
+  	  
+  	  .methods .button{
+        background-color: #49ff7d;
+        font-family: 'Sarabun', sans-serif;
+        margin: 5px;
+        border-radius: 4px;
+        border: 2px solid white;
+        padding: 5px;
+        text-align: center;
+        cursor: pointer;
+        font-weight: normal;
+        font-size: 18px;
+        transition: all 0.6s ease 0s;
+  	  }
+  	  .methods .button:hover{
+    		background-color: white;
+    		padding: 10px;
+  	  }
+      
+  	  .methods .button.active{
+        background-color: #eee;
+        padding: 10px;
+        text-decoration: underline;
+        border: 2px solid #999;
+  	  }
+      
+  	  .tbl{
+        width: 100%;
+  	  }
+      
+  	  .pre{
+        font-family: 'Calibri', sans-serif;
+        overflow-wrap: break-word;
+        text-overflow: ellipsis;
+        background-color: black;
+        border: 1px solid lime;
+        color: white;
+        padding: 5px;
+  	  }
+
+      .loading{
+        font-family: 'Calibri', sans-serif;
+        position: fixed;
+        top: 30%;
+        left: 10%;
+        right: 10%;
+        padding: 100px;
+        text-align: center;
+        background-color: rgba(0,0,0,0.95);
+        color: white;
+        font-size: 28px;
+        border: 4px solid #49ff7d;
+        box-shadow: 0px 0px 66px 10px black;
+        z-index: 999999;
+      }
+
+    </style>
+    <script>
+      
+    	var mode = 'browser';
+      
+    	var userAgent = navigator.userAgent.toLowerCase();
+    	if (userAgent.indexOf(' electron/') > -1) {
+    	   // Electron-specific code
+    	   var mode = 'electron';
+    	}
+      
+      wallet_rpc = 'http://127.0.0.1:30307/';
+      daemon_rpc = 'http://127.0.0.1:30306/';
+      scid = '9413fecc91fa25e98429a7d815367565f8705f0037cd70fdca7883e5a6fe6f1e';
+      
+      var latest_call = '';
+      var last_subj = '';
+      
+    	$(document).ready(function(){
+    		
+        setTimeout(function(){ $('.loading').hide(); },500);
+        
+        $('.wallet_rpc').val(wallet_rpc);
+        $('.daemon_rpc').val(daemon_rpc);
+        $('.scid').each(function(){
+          $(this).val(scid);
+        });
+
+        //Ping remote daemon
+        test_remote_daemon = 'http://206.189.61.167:30306/';
+        $.ajax({
+          url: test_remote_daemon+'json_rpc',
+          success: function(result){
+            $('.daemon_rpc').val(test_remote_daemon);
+            get_tx_sc_val([]);
+          },     
+          error: function(result){
+            get_tx_sc_val([]);
+          }
+        });
+        
+        //Construct daemon interaction
+        function get_tx_sc_val(keys){
+          
+          $('.pre2').html("Loading...");
+          $('.loading').show();
+          
+          copm_tx = {
+            "txs_hashes": [scid],
+            "sc_keys": keys
+          }
+          $('.loading').show();
+          $.ajax({
+            url: $('.daemon_rpc').val()+"gettransactions", 
+            data: JSON.stringify (copm_tx),  // id is needed !!
+            type:"POST",
+            dataType:"json",
+            success: function (data){
+              if(keys.length==0){
+                
+                text  = "Contract balance: "+(data.txs[0].sc_balance/1000000000000)+' DERO<br/>';
+                text += "Deployed at "+data.txs[0].block_height+" height"+"<hr/>";
+                text += 'Methods availiable:<br/>';
+                Object.keys(data.txs[0].sc.F).forEach(function(key) {
+                  text += key+"<br/>";
+                });
+                $('.pre2').show();
+                $('.pre2').html(text);
+                $('.loading').hide();
+                
+              }else{
+                
+                text = latest_call+": "+last_subj+"<br/>";
+                if( data.txs[0].sc_keys[Object.keys(data.txs[0].sc_keys)[0]] == "" ){
+                  text += "Not Found (your transaction might not get mined yet, please wait and retry)";
+                }else{
+                  text += "<br/>Original creator: "+(data.txs[0].sc_keys[last_subj]);
+                  text += "<hr/>Can add new signers: "+( (parseInt(data.txs[0].sc_keys[last_subj+'_locked'])?'No':'Yes')  );
+                  text += "<br/>Can deposit: "+( (parseInt(data.txs[0].sc_keys[last_subj+'_locked'])?'Yes':'No (you need to lock wallet to be able to deposit)')  );
+                  text += "<br/>Balance: "+(data.txs[0].sc_keys[last_subj+'_balance']/1000000000000)+" DERO";
+                  text += "<br/>Signer count: "+( parseInt(data.txs[0].sc_keys[last_subj+'_signer_index'])+1 );
+                  text += "<hr/>Signer List:<br/>";
+                  text += "<br/> - "+(data.txs[0].sc_keys[last_subj+'_signer_0']);
+                  text += "<br/> - "+(data.txs[0].sc_keys[last_subj+'_signer_1']);
+                  text += "<br/> - "+(data.txs[0].sc_keys[last_subj+'_signer_2']);
+                  text += "<br/> - "+(data.txs[0].sc_keys[last_subj+'_signer_3']);
+                  text += "<br/> - "+(data.txs[0].sc_keys[last_subj+'_signer_4']);
+                  text += "<br/> - "+(data.txs[0].sc_keys[last_subj+'_signer_5']);
+                  text += "<br/> - "+(data.txs[0].sc_keys[last_subj+'_signer_6']);
+                  text += "<br/> - "+(data.txs[0].sc_keys[last_subj+'_signer_7']);
+                  text += "<br/> - "+(data.txs[0].sc_keys[last_subj+'_signer_8']);
+                  text += "<br/> - "+(data.txs[0].sc_keys[last_subj+'_signer_9']);   
+                  text += "<br/> - "+(data.txs[0].sc_keys[last_subj+'_signer_10']);
+                }
+                
+                $('.pre2').show();
+                $('.pre2').html(text);
+                $('.loading').hide();
+                
+              }
+            },
+            error: function (err)  { 
+              $('.pre2').show();
+              $('.pre2').text('Failed to communicate with daemon');
+              $('.loading').hide();
+            }
+          });
+           
+        }
+
+/*
+        $('.act2').click(function(){
+          
+
+          
+        });*/
+        
+    		$('.act1,.act2').click(function(){
+    			sc = $(this).data('command');
+    			
+    			if( sc == 'Execute' ){
+            
+            if($(this).hasClass('act2')){
+              try{
+                latest_call = active_cmd;
+              }catch(err){
+                get_tx_sc_val([]);
+              }
+            
+              if(latest_call=="Wallet"){
+                subj = $( "#wallet" ).val();
+                last_subj = subj;
+                //alert(subj);
+                props = [subj,subj+'_balance',subj+'_locked',subj+'_signer_index'];
+                props.push(subj+"_signer_0");
+                props.push(subj+"_signer_1");
+                props.push(subj+"_signer_2");
+                props.push(subj+"_signer_3");
+                props.push(subj+"_signer_4");
+                props.push(subj+"_signer_5");
+                props.push(subj+"_signer_6");
+                props.push(subj+"_signer_7");
+                props.push(subj+"_signer_8");
+                props.push(subj+"_signer_9");
+                props.push(subj+"_signer_10");
+                get_tx_sc_val(props);
+              }
+              if(latest_call=="Transaction"){
+                subj = $( "#transaction" ).val();
+                last_subj = subj;
+                get_tx_sc_val([
+                  'transaction_'+subj,
+                  'transaction_'+subj+'_amount',
+                  'transaction_'+subj+'_wallet',
+                  'transaction_'+subj+'_executed',
+                  'transaction_'+subj+'_signatures_count',
+                ]);
+              }
+            }
+            
+            if($(this).hasClass('act1')){
+              
+              $('.loading').show();
+              
+      				command = $(this).data('command');
+      				scid = $('#scid').val();
+              
+              copm_tx = {
+                "mixin":5,
+                "get_tx_key":true,
+                "sc_tx":
+                {
+                  "entrypoint": active_cmd,
+                  "scid": scid,
+                }
+              };
+              
+      				copm_tx.sc_tx.params = {};
+      				
+      				$( "#params .params" ).each(function( index ) {
+      				  console.log( $( this ).attr('id') + ": " + $( this ).val() );
+      				  
+      				  dc_val = '';
+      				  if( $( this ).attr('type') == 'number' ){
+                  dc_val = parseInt($( this ).val());
+      				  }else{
+                  dc_val = $( this ).val();
+      				  }
+
+      					if($( this ).attr('id')=='value'){
+                  copm_tx.sc_tx.value = parseInt($( this ).val())*1000000000000;
+      					}else{
+                  copm_tx.sc_tx.params[$( this ).attr('id')]=  dc_val;
+      					}
+      				});
+      				
+      				if( Object.keys(copm_tx.sc_tx.params).length === 0 ) delete copm_tx.sc_tx.params;
+      				
+              if(mode=='electron'){
+
+                var data = JSON.stringify ({"jsonrpc":"2.0","id":0,"method":"transfer_split","params":copm_tx});
+                
+                //console.log(data);
+                
+                var xhr = new XMLHttpRequest();
+                xhr.withCredentials = true;
+
+                xhr.addEventListener("readystatechange", function () {
+                  console.log(this.readyState, xhr);
+                  if (this.readyState === 4) {
+                    text = ''+active_cmd+'<hr/>';
+                    text += JSON.stringify(data)+'<hr/>';
+                    text += JSON.stringify(xhr.response)+'<hr/>';
+                    $('.pre1').html( text );
+                    $('.pre1').show();
+                    $('.loading').hide();
+                  }
+                  if(xhr.response==""){
+                    text = 'Error communicating with local wallet rpc (run wallet with --rpc-server attribute)';
+                    $('.pre1').html( text );
+                  }
+                });
+
+                xhr.open("POST", $('.wallet_rpc').val()+"json_rpc");
+                xhr.setRequestHeader("Content-Type", "application/json");
+
+                xhr.send(data);
+              }else{
+        				prep_data = "{\"jsonrpc\":\"2.0\",\"id\":\"0\",\"method\":\"transfer_split\",\"params\":"+(JSON.stringify(copm_tx))+"}";
+        				prep_data = JSON.stringify(prep_data);
+        				$('.pre1').text("curl -X POST "+($('.wallet_rpc').val())+" -H \"Content-Type: application/json\" -d "+prep_data);
+        				$('.pre1').show();
+                $('.loading').hide();
+              }
+              
+            }
+            
+    			}else{
+    				active_cmd = sc;
+    				
+            $('.bct1 #params').html("");
+            $('.bct2 #params').html("");
+            
+    				if(active_cmd){
+    					if($(this).hasClass('act1')){ 
+                $('.pre1').hide();
+                $('.bct1 #confirm').show();
+              }
+              if($(this).hasClass('act2')){ 
+                $('.pre2').hide();
+                $('.bct2 #confirm').show();
+              }
+    					
+    					params = $(this).data('params');
+    					if(params){
+    						a = params.split(',');
+    						for (i = 0; i < a.length; i++) {
+    							def = (a[i]);
+    							type = 'text';
+    							if( def == 'value' ){
+    								type = 'number';
+    							}else{
+    							
+    							}
+    							lable = a[i];
+    							if(lable=='wallet'){
+    								lable = 'wallet (contract wallet id)';
+    							}
+    							if(lable=='signer'){
+    								lable = 'signer (valid DERO address)';
+    							}
+    							if(lable=='destination'){
+    								lable = 'destination (valid DERO address)';
+    							}
+    							if(lable=='value' || lable=='amount'){
+    								lable = 'amount (in DERO)';
+    							}
+    							if(lable=='transaction'){
+    								lable = 'transaction (contract transaction id)';
+    							}
+                  if($(this).hasClass('act1')){ 
+                    $('.bct1 #params').append('<div class="input-state"><span>'+(lable)+'</span><input type="'+type+'" class="params" id="'+a[i]+'" value=""/></div>');
+                  }
+                  if($(this).hasClass('act2')){ 
+                    $('.bct2 #params').append('<div class="input-state"><span>'+(lable)+'</span><input type="'+type+'" class="params" id="'+a[i]+'" value=""/></div>');
+                  }
+    						}
+    					}
+    				}
+    			}
+    		});
+
+    	});
+    </script>
+
+  </head>
+  <body>
+    <div class="loading">Loading ...</div>
+    <table class="tbl">
+      <tr>
+        <td valign="top">
+    
+          <div class="contract-box bct1">
+            
+            <h2>`dero multisig interact`</h2>
+
+            <div class="input-state">
+              <span>wallet rpc path</span>
+              <input type="text" class="wallet_rpc" value="http://127.0.0.1:30307/json_rpc"/>
+            </div>
+
+            <div class="input-state">
+              <span>scid</span>
+              <input disabled type="text" id="scid" class="scid" value=""/>
+            </div>
+
+            <br/>
+            <h2>`availiable operations`</h2>
+            
+            <div class="methods">
+              <h5><center>wallet commands</center></h5>
+              <div class="button act1" data-command="WalletCreate">1. Setup Wallet (Anyone)</div>
+              <div class="button act1" data-command="WalletAddSigner" data-params="wallet,signer">2. Add Signer to a Wallet (Wallet Creator)</div>
+              <div class="button act1" data-command="WalletLock" data-params="wallet">3. Finalize Wallet (Wallet Creator)</div>
+              <div class="button act1" data-command="WalletDeposit" data-params="wallet,value">4. Deposit Funds to a Wallet (Anyone)</div>
+              <br/>
+              <h5><center>transaction commands</center></h5>
+              <div class="button act1" data-command="TransactionCreateSendHumanReadableAmount" data-params="wallet,destination,amount">Create Transaction (Wallet Member)</div>
+              <center>or</center>
+              <div class="button act1" data-command="TransactionSign" data-params="transaction">Sign Transaction (Wallet Member)</div>
+            </div>
+
+            <section id="confirm" style="display: none;">
+              <br/>
+              <h2>`confirm interaction`</h2>
+
+              <div class="methods">
+                <div id="params"></div>
+                <div class="button act1" data-command="Execute">Construct Transaction</div>
+              </div>
+              <br/>
+              <div class="pre pre1" style="display: none;">
+                Loading...
+              </div>
+            </section>
+
+          </div>
+  	
+      	</td>
+      	<td valign="top">
+  
+          <div class="contract-box bct2">
+            
+            <h2>`dero multisig verify`</h2>
+
+            <div class="input-state">
+              <span>daemon rpc path</span>
+              <input type="text" class="daemon_rpc" value=""/>
+            </div>
+
+            <div class="input-state">
+              <span>scid</span>
+              <input disabled type="text" id="scid" class="scid" value=""/>
+            </div>
+
+              <br/>
+            <h2>`availiable operations`</h2>
+              <div class="methods">
+              <div class="button act2" data-command="Wallet" data-params="wallet">View Wallet Status</div>
+              <div class="button act2" data-command="Transaction" data-params="transaction">View Transaction Status</div>
+            </div>
+
+            <section id="confirm">
+              <br/>
+              <h2>`contract state`</h2>
+              
+              <div class="methods">
+                <div id="params"></div>
+                <div class="button act2" data-command="Execute">Construct Transaction</div>
+              </div>
+              <br/>
+              
+              <div class="pre pre2">
+                Loading...
+              </div>
+            </section>
+          
+          </div>
+
+  	   </td>
+  	 </tr>
+  	</table>
+
+  </body>
+</html>
