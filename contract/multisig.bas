@@ -292,7 +292,7 @@ Function TransactionCreateSend(wallet String, destination String, amount Uint64)
 	11 RETURN Error("Given `DEROMultisig Wallet` does not exists")
 	
 	// Check if destination wallet is valid DERO address
-	20 IF IS_ADDRESS_VALID(LOAD(destination)) == 1 THEN GOTO 30
+	20 IF IS_ADDRESS_VALID(destination) == 1 THEN GOTO 30
 	21 RETURN Error("Destiantion address is not a valid DERO address.")
 
 	// Check if amount is larger then zero
