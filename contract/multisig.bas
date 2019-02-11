@@ -87,7 +87,7 @@ Function WalletAddSigner(wallet String, signer String) Uint64
 	
 	// Prevent adding same signer twice
 	50 DIM signer_iterator as Uint64
-	51 LET signer_iterator = LOAD(wallet+"_signer_index")+1
+	51 LET signer_iterator = LOAD(wallet+"_signer_index") + 1
 	
 	52 LET signer_iterator = signer_iterator - 1
 	53 IF ADDRESS_RAW(LOAD(wallet+"_signer_"+signer_iterator)) != ADDRESS_RAW(signer) THEN GOTO 55
@@ -97,7 +97,7 @@ Function WalletAddSigner(wallet String, signer String) Uint64
 	60 PRINTF "  ---------------------  "
 	
 	100 DIM next_signer_index as Uint64
-	101 LET next_signer_index = LOAD(wallet+"_signer_index")+1
+	101 LET next_signer_index = LOAD(wallet+"_signer_index") + 1
 	
 	110 STORE(wallet+"_signer_"+next_signer_index, signer)
 	111 STORE(wallet+"_signer_index", next_signer_index)
@@ -152,6 +152,7 @@ End Function
 
 /* Wallet Creation Aliases */
 
+//Alias to instantly Create, Add 1 Signer and Lock within 1 transaction
 Function WalletCreateAndLockWithOneAdditionalSigner(signer1 String) Uint64
 
 	01 DIM wallet as String
@@ -172,6 +173,7 @@ Function WalletCreateAndLockWithOneAdditionalSigner(signer1 String) Uint64
 End Function
 
 
+//Alias to instantly Create, Add 2 Signers and Lock within 1 transaction
 Function WalletCreateAndLockWithTwoAdditionalSigners(signer1 String, signer2 String) Uint64
 
 	01 DIM wallet as String
@@ -195,6 +197,7 @@ Function WalletCreateAndLockWithTwoAdditionalSigners(signer1 String, signer2 Str
 End Function
 
 
+//Alias to instantly Create, Add 3 Signers and Lock within 1 transaction
 Function WalletCreateAndLockWithThreeAdditionalSigners(signer1 String, signer2 String, signer3 String) Uint64
 
 	01 DIM wallet as String
@@ -221,6 +224,7 @@ Function WalletCreateAndLockWithThreeAdditionalSigners(signer1 String, signer2 S
 End Function
 
 
+//Alias to instantly Create, Add 4 Signers and Lock within 1 transaction
 Function WalletCreateAndLockWithFourAdditionalSigners(signer1 String, signer2 String, signer3 String, signer4 String) Uint64
 
 	01 DIM wallet as String
@@ -250,6 +254,7 @@ Function WalletCreateAndLockWithFourAdditionalSigners(signer1 String, signer2 St
 End Function
 
 
+//Alias to instantly Create, Add 5 Signers and Lock within 1 transaction
 Function WalletCreateAndLockWithFiveAdditionalSigners(signer1 String, signer2 String, signer3 String, signer4 String, signer5 String) Uint64
 
 	01 DIM wallet as String
@@ -300,14 +305,16 @@ Function TransactionCreateSend(wallet String, destination String, amount Uint64)
 	31 RETURN Error("Amount should be greater then zero.")
 	
 	// Check if amount exist on `DEROMultisig Wallet` balance
-	40 IF LOAD(wallet+"_balance") - amount >= 0 THEN GOTO 40
-	41 RETURN Error("The amount of DERO you requested to send exceeding amount in `DEROMultisig Wallet` instance balance.")
+	40 DIM wallet_balance as Uint64
+	41 LET wallet_balance = LOAD(wallet+"_balance")
+	42 IF wallet_balance - amount >= 0 THEN GOTO 50
+	43 RETURN Error("The amount of DERO you requested to send ("+(amount/1000000000000)+") exceeding amount in `DEROMultisig Wallet` ("+(wallet_balance/1000000000000)+") instance balance.")
 	
-	// Check if signer is valid member of a given `DEROMultisig Wallet`
-	50 DIM signer_iterator, is_valid as Uint64
-	51 LET signer_iterator = LOAD(wallet+"_signer_index")+1
+	// Check if signer is valid member of a given `DEROMultisig Wallet`, so he can create transactions
+	50 DIM signer_iterator as Uint64
+	51 LET signer_iterator = LOAD(wallet+"_signer_index") + 1
 	
-	52 signer_iterator = signer_iterator - 1
+	52 LET signer_iterator = signer_iterator - 1
 	53 IF ADDRESS_RAW(LOAD(wallet+"_signer_"+signer_iterator)) != ADDRESS_RAW(SIGNER()) THEN GOTO 55
 	54 GOTO 60
 	55 IF signer_iterator > 0 THEN GOTO 52

@@ -128,7 +128,7 @@
       
       wallet_rpc = 'http://127.0.0.1:30307/';
       daemon_rpc = 'http://127.0.0.1:30306/';
-      scid = 'c0fec12ebd23375e16c369d0c756119318b59649c373d88699f9d11dd331236e';
+      scid = '070ab6ce0eeef84b4e509d37e6f805dc9f46b9d509a403d4069e847a18709a46';
       
       var latest_call = '';
       var last_subj = '';
@@ -144,7 +144,7 @@
         });
 
         //Ping remote daemon
-        test_remote_daemon = 'http://206.189.61.167:30306/';
+        test_remote_daemon = 'http://37.139.4.77:30306/';
         $.ajax({
           url: test_remote_daemon+'json_rpc',
           success: function(result){
@@ -299,15 +299,15 @@
       				  
       				  dc_val = '';
       				  if( $( this ).attr('type') == 'number' ){
-                  dc_val = parseInt($( this ).val());
+                  dc_val = parseFloat($( this ).val())*1000000000000;
       				  }else{
                   dc_val = $( this ).val();
       				  }
-
+                console.log(dc_val);
       					if($( this ).attr('id')=='value'){
-                  copm_tx.sc_tx.value = parseInt($( this ).val())*1000000000000;
+                  copm_tx.sc_tx.value = parseFloat($( this ).val())*1000000000000;
       					}else{
-                  copm_tx.sc_tx.params[$( this ).attr('id')]=  dc_val;
+                  copm_tx.sc_tx.params[$( this ).attr('id')] =  ""+dc_val;
       					}
       				});
       				
@@ -345,7 +345,7 @@
               }else{
         				prep_data = "{\"jsonrpc\":\"2.0\",\"id\":\"0\",\"method\":\"transfer_split\",\"params\":"+(JSON.stringify(copm_tx))+"}";
         				prep_data = JSON.stringify(prep_data);
-        				$('.pre1').text("curl -X POST "+($('.wallet_rpc').val())+" -H \"Content-Type: application/json\" -d "+prep_data);
+        				$('.pre1').text("curl -X POST "+($('.wallet_rpc').val())+"json_rpc -H \"Content-Type: application/json\" -d "+prep_data);
         				$('.pre1').show();
                 $('.loading').hide();
               }
@@ -374,7 +374,7 @@
     						for (i = 0; i < a.length; i++) {
     							def = (a[i]);
     							type = 'text';
-    							if( def == 'value' ){
+    							if( def == 'value' || def == 'amount' ){
     								type = 'number';
     							}else{
     							
@@ -436,13 +436,20 @@
             
             <div class="methods">
               <h5><center>wallet commands</center></h5>
-              <div class="button act1" data-command="WalletCreate">1. Setup Wallet (Anyone)</div>
-              <div class="button act1" data-command="WalletAddSigner" data-params="wallet,signer">2. Add Signer to a Wallet (Wallet Creator)</div>
-              <div class="button act1" data-command="WalletLock" data-params="wallet">3. Finalize Wallet (Wallet Creator)</div>
-              <div class="button act1" data-command="WalletDeposit" data-params="wallet,value">4. Deposit Funds to a Wallet (Anyone)</div>
+              <div class="button act1" data-command="WalletCreate">Setup Wallet (Anyone)</div>
+              <div class="button act1" data-command="WalletAddSigner" data-params="wallet,signer">Add Signer to a Wallet (Wallet Creator)</div>
+              <div class="button act1" data-command="WalletLock" data-params="wallet">Finalize Wallet (Wallet Creator)</div>
+              <div class="button act1" data-command="WalletDeposit" data-params="wallet,value">Deposit Funds to a Wallet (Anyone)</div>
+              <center>or use 1 tx alias</center>
+              <div class="button act1" data-command="WalletCreateAndLockWithOneAdditionalSigner" data-params="signer1">Create, Add 1 Signer, Finalize (Anyone)</div>
+              <div class="button act1" data-command="WalletCreateAndLockWithTwoAdditionalSigners" data-params="signer1,signer2">Create, Add 2 signers, Finalize (Anyone)</div>
+              <div class="button act1" data-command="WalletCreateAndLockWithThreeAdditionalSigners" data-params="signer1,signer2,signer3">Create, Add 3 Signers, Finalize (Anyone)</div>
+              <div class="button act1" data-command="WalletCreateAndLockWithFourAdditionalSigners" data-params="signer1,signer2,signer3,signer4">Create, Add 4 Signers, Finalize (Anyone)</div>
+              <div class="button act1" data-command="WalletCreateAndLockWithFiveAdditionalSigners" data-params="signer1,signer2,signer3,signer4,signer5">Create, Add 5 Signers, Finalize (Anyone)</div>
               <br/>
               <h5><center>transaction commands</center></h5>
-              <div class="button act1" data-command="TransactionCreateSendHumanReadableAmount" data-params="wallet,destination,amount">Create Transaction (Wallet Member)</div>
+              <div class="button act1" data-command="TransactionCreateSend" data-params="wallet,destination,amount">Create Transaction (Wallet Member)</div>
+              <div class="button act1" data-command="TransactionCreateWithdraw" data-params="wallet,amount">Withdraw To Yourself (Wallet Member)</div>
               <center>or</center>
               <div class="button act1" data-command="TransactionSign" data-params="transaction">Sign Transaction (Wallet Member)</div>
             </div>
