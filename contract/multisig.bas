@@ -153,7 +153,7 @@ End Function
 /* Wallet Creation Aliases */
 
 //Alias to instantly Create, Add 1 Signer and Lock within 1 transaction
-Function WalletCreateAndLockWithOneAdditionalSigner(signer1 String) Uint64
+Function WalletCreateAndLockWithOneAdditionalSigner(signer1 String, value Uint64) Uint64
 
 	01 DIM wallet as String
 	02 LET wallet = TXID()
@@ -167,7 +167,10 @@ Function WalletCreateAndLockWithOneAdditionalSigner(signer1 String) Uint64
 	30 IF WalletLock(wallet) == 0 THEN GOTO 40
 	31 RETURN 1
 	
-	40 PRINTF "  ---------------------  "
+	40 IF WalletDeposit(wallet, value) == 0 THEN GOTO 50
+	41 RETURN 1
+	
+	50 PRINTF "  ---------------------  "
 	
 	999 RETURN 0
 End Function
@@ -334,7 +337,7 @@ Function TransactionCreateSend(wallet String, destination String, amount Uint64)
 	//Presign transaction with your signature to save executions
 	107 TransactionSign(transaction)
 	
-	999 RETURN RETURN Info("`DEROMultisig Transaction` ("+transaction+") succsesfully created.")
+	999 RETURN Info("`DEROMultisig Transaction` ("+transaction+") succsesfully created.")
 End Function
 
 
@@ -374,16 +377,18 @@ Function TransactionSign(transaction String) Uint64
 	21 RETURN Error("Given `DEROMultisig Transaction` is already executed.")
 	
 	// Check if amount exist on `DEROMultisig Wallet` balance
-	30 DIM wallet_balance as Uint64
-	31 LET wallet_balance = LOAD(LOAD("transaction_"+transaction+"_wallet")+"_balance")
+	30 DIM wallet as String
+	31 LET wallet = LOAD("transaction_"+transaction+"_wallet")
+	32 DIM wallet_balance as Uint64
+	33 LET wallet_balance = LOAD(wallet+"_balance")
 	
-	32 IF wallet_balance - LOAD("transaction_"+transaction+"_amount") >= 0 THEN GOTO 40
-	33 STORE("transaction_"+transaction+"_executed", 2)
-	34 RETURN Error("The amount of DERO you requested exceeding amount in `DEROMultisig Wallet` instance bslsnvr, transaction no longer valid.")
+	34 IF wallet_balance - LOAD("transaction_"+transaction+"_amount") >= 0 THEN GOTO 40
+	35 STORE("transaction_"+transaction+"_executed", 2)
+	36 RETURN Error("The amount of DERO you requested exceeding amount in `DEROMultisig Wallet` instance bslsnvr, transaction no longer valid.")
 	
 	// Check if signer is valid member of a given `DEROMultisig Transaction`
 	40 DIM signer_iterator as Uint64
-	41 LET signer_iterator = LOAD(wallet+"_signer_index")+1
+	41 LET signer_iterator = LOAD(wallet+"_signer_index") + 1
 	
 	42 LET signer_iterator = signer_iterator - 1
 	43 IF ADDRESS_RAW(LOAD(wallet+"_signer_"+signer_iterator)) != ADDRESS_RAW(SIGNER()) THEN GOTO 45
@@ -413,10 +418,10 @@ Function TransactionSign(transaction String) Uint64
 	
 	126 SEND_DERO_TO_ADDRESS(LOAD("transaction_"+transaction), LOAD("transaction_"+transaction+"_amount"))
 	127 STORE("transaction_"+transaction+"_executed", 1)
-	128 STORE(LOAD("transaction_"+transaction+"_wallet")+"_balance", wallet_balance - LOAD("transaction_"+transaction+"_amount"))
+	128 STORE(wallet+"_balance", wallet_balance - LOAD("transaction_"+transaction+"_amount"))
 	
-	998 RETURN RETURN Info("`DEROMultisig Transaction` ("+transaction+") signed by last member and now executed.")
+	998 RETURN Info("`DEROMultisig Transaction` ("+transaction+") signed by last member and now executed.")
 	
-	999 RETURN RETURN Info("`DEROMultisig Transaction` ("+transaction+") signed successfully.")
+	999 RETURN Info("`DEROMultisig Transaction` ("+transaction+") signed successfully.")
 End Function
 
