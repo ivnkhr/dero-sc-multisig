@@ -11,7 +11,7 @@ https://forum.dero.io/t/wip-dero-multisig-smart-contract/942
 
 
 
-* - Step 1*
+- Step 1
 
 to be able to use interface, please run dero wallet and daemon with these params
 ```
@@ -20,7 +20,7 @@ start dero-wallet-cli-windows-386.exe --wallet-file test1.wallet --testnet --rpc
 ```
 
 
-* - Step 2*
+- Step 2
 
 You can run your electron interface app with (You need to have Node.Js installed)
 ```
@@ -40,4 +40,4 @@ interface/index.html
 ```
 
 
-* - Step 3*
+- Step 3
