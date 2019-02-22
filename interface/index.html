@@ -160,7 +160,7 @@
       
       wallet_rpc = 'http://127.0.0.1:30307/';
       daemon_rpc = 'http://127.0.0.1:30306/';
-      scid = '9d5f4a8bd55f0977b630b3b3af9d2dfc0a1d7277f70f81b3c90735e51af88bdb';
+      scid = '4036c7ae3c0be674174d395a8c77fedb859b86e4b8dbe2279ac06d6b38764140';
       
       var latest_call = '';
       var last_subj = '';
@@ -392,25 +392,30 @@
                   if (this.readyState === 4) {
                     text = '<b>'+active_cmd+'</b><hr/>';
 					
-					//console.log(.);
-					if( 
-						active_cmd == 'WalletCreate' || 
-						active_cmd == 'WalletCreateAndLockWithOneAdditionalSigner' || 
-						active_cmd == 'WalletCreateAndLockWithTwoAdditionalSigners' ||
-						active_cmd == 'WalletCreateAndLockWithThreeAdditionalSigners' ||
-						active_cmd == 'WalletCreateAndLockWithFourAdditionalSigners' ||
-						active_cmd == 'WalletCreateAndLockWithFiveAdditionalSigners'
-					){
-						text = '<div class="txs" style="background-color: black; font-size: 17px; color: lime;">Your Wallet ID:<br/><b>'+JSON.parse(xhr.response).result.tx_hash_list[0]+'</b></div><hr/>';
-						$('.instances').show().append('<div class="txs" style="background-color: black; font-size: 15px; color: lime;">Wallet: <b>'+JSON.parse(xhr.response).result.tx_hash_list[0]+'</b></div>');
-					} else if (
-						active_cmd == 'TransactionCreateSend' || 
-						active_cmd == 'TransactionCreateWithdraw'
-					){
-						text = '<div class="txs" style="background-color: black; font-size: 17px; color: magenta;">Your Transaction ID:<br/><b>'+JSON.parse(xhr.response).result.tx_hash_list[0]+'</b></div><hr/>';
-						$('.instances').show().append('<div class="txs" style="background-color: black; font-size: 15px; color: magenta;">Transaction: <b>'+JSON.parse(xhr.response).result.tx_hash_list[0]+'</b></div>');
+					try{
+						//console.log(.);
+						if( 
+							active_cmd == 'WalletCreate' || 
+							active_cmd == 'WalletCreateAndLockWithOneAdditionalSigner' || 
+							active_cmd == 'WalletCreateAndLockWithTwoAdditionalSigners' ||
+							active_cmd == 'WalletCreateAndLockWithThreeAdditionalSigners' ||
+							active_cmd == 'WalletCreateAndLockWithFourAdditionalSigners' ||
+							active_cmd == 'WalletCreateAndLockWithFiveAdditionalSigners'
+						){
+							text = '<div class="txs" style="background-color: black; font-size: 17px; color: lime;">Your Wallet ID:<br/><b>'+JSON.parse(xhr.response).result.tx_hash_list[0]+'</b></div><hr/>';
+							$('.instances').show().append('<div class="txs" style="background-color: black; font-size: 15px; color: lime;">Wallet: <b>'+JSON.parse(xhr.response).result.tx_hash_list[0]+'</b></div>');
+						} else if (
+							active_cmd == 'TransactionCreateSend' || 
+							active_cmd == 'TransactionCreateWithdraw'
+						){
+							text = '<div class="txs" style="background-color: black; font-size: 17px; color: magenta;">Your Transaction ID:<br/><b>'+JSON.parse(xhr.response).result.tx_hash_list[0]+'</b></div><hr/>';
+							$('.instances').show().append('<div class="txs" style="background-color: black; font-size: 15px; color: magenta;">Transaction: <b>'+JSON.parse(xhr.response).result.tx_hash_list[0]+'</b></div>');
+						}
+					}catch(err){
+					
 					}
-
+					
+					
                     text += JSON.stringify(data)+'<hr/>';
                     text += JSON.stringify(xhr.response)+'<hr/>';
                     $('.pre1').html( text );

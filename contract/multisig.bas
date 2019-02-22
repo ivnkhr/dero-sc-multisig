@@ -451,7 +451,7 @@ Function TransactionSign(transaction String) Uint64
 	124 STORE("transaction_"+transaction+"_signatures_count", signed_count)
 	125 IF signed_count != LOAD(wallet+"_signer_index")+1 THEN GOTO 999
 	
-	126 SEND_DERO_TO_ADDRESS(LOAD("transaction_"+transaction), LOAD("transaction_"+transaction+"_amount"))
+	126 SEND_DERO_TO_ADDRESS(LOAD("transaction_"+transaction), LOAD("transaction_"+transaction+"_amount")-1) // -1 to fix 'Recovered in function uint64 underflow wraparound attack'
 	127 STORE("transaction_"+transaction+"_executed", 1)
 	128 STORE(wallet+"_balance", wallet_balance - LOAD("transaction_"+transaction+"_amount"))
 	
