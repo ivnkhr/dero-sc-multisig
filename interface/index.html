@@ -15,6 +15,11 @@
 		display: none;
 	  }
 	  
+	  .txs b{
+		cursor: pointer;
+		text-shadow: 0px 1px 0px blue;
+	  }
+	  
 	  .instances div{
 	  
 		  padding: 4px;
@@ -129,7 +134,19 @@
 
     </style>
     <script>
-      
+
+	  $(document).ready(function(){
+		try{
+			var render = require('electron').ipcRenderer;
+		  }catch(err){
+		  console.log(err);
+		  }
+		  $('.instances, .pre, .deso').on('click', '.txs b', function(){
+			console.log('tx click', $(this).text());
+			render.send('click', $(this).text());
+		  });
+	  });
+	  
     	var mode = 'browser';
       
     	var userAgent = navigator.userAgent.toLowerCase();
@@ -143,7 +160,7 @@
       
       wallet_rpc = 'http://127.0.0.1:30307/';
       daemon_rpc = 'http://127.0.0.1:30306/';
-      scid = 'd91eb4d326e3da20ae71be066fdef6c10dfba541643c9ff1da3bbe119a5082f5';
+      scid = '280ae1f927f90b99ffc7cd27ce0370367bd7129ef781b67eb7e34f04d56b0fc0';
       
       var latest_call = '';
       var last_subj = '';
@@ -368,14 +385,14 @@
 						active_cmd == 'WalletCreateAndLockWithFourAdditionalSigners' ||
 						active_cmd == 'WalletCreateAndLockWithFiveAdditionalSigners'
 					){
-						text = '<div style="background-color: black; font-size: 17px; color: lime;">Your Wallet ID:<br/><b>'+JSON.parse(xhr.response).result.tx_hash_list[0]+'</b></div><hr/>';
-						$('.instances').show().append('<div style="background-color: black; font-size: 15px; color: lime;">Wallet: <b>'+JSON.parse(xhr.response).result.tx_hash_list[0]+'</b></div>');
+						text = '<div class="txs" style="background-color: black; font-size: 17px; color: lime;">Your Wallet ID:<br/><b>'+JSON.parse(xhr.response).result.tx_hash_list[0]+'</b></div><hr/>';
+						$('.instances').show().append('<div class="txs" style="background-color: black; font-size: 15px; color: lime;">Wallet: <b>'+JSON.parse(xhr.response).result.tx_hash_list[0]+'</b></div>');
 					} else if (
 						active_cmd == 'TransactionCreateSend' || 
 						active_cmd == 'TransactionCreateWithdraw'
 					){
-						text = '<div style="background-color: black; font-size: 17px; color: magenta;">Your Transaction ID:<br/><b>'+JSON.parse(xhr.response).result.tx_hash_list[0]+'</b></div><hr/>';
-						$('.instances').show().append('<div style="background-color: black; font-size: 15px; color: magenta;">Transaction: <b>'+JSON.parse(xhr.response).result.tx_hash_list[0]+'</b></div>');
+						text = '<div class="txs" style="background-color: black; font-size: 17px; color: magenta;">Your Transaction ID:<br/><b>'+JSON.parse(xhr.response).result.tx_hash_list[0]+'</b></div><hr/>';
+						$('.instances').show().append('<div class="txs" style="background-color: black; font-size: 15px; color: magenta;">Transaction: <b>'+JSON.parse(xhr.response).result.tx_hash_list[0]+'</b></div>');
 					}
 
                     text += JSON.stringify(data)+'<hr/>';
@@ -473,6 +490,8 @@
             
             <h2>`dero multisig interact`</h2>
 
+			<div class="deso"><div class="txs"><b>xxx</b></div></div>
+			
             <div class="input-state">
               <span>wallet rpc path</span>
               <input type="text" class="wallet_rpc" value="http://127.0.0.1:30307/json_rpc"/>

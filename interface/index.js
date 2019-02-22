@@ -1,5 +1,5 @@
 // Modules to control application life and create native browser window
-const {app, BrowserWindow, Menu, MenuItem} = require('electron')
+const {app, BrowserWindow, Menu, MenuItem, ipcMain} = require('electron')
 path = require('path');
 url = require('url');
 
@@ -69,6 +69,8 @@ function createWindow () {
   Menu.setApplicationMenu(menu); 
   
   
+
+  
   // Open the DevTools.
   // mainWindow.webContents.openDevTools()
 
@@ -94,6 +96,11 @@ app.on('window-all-closed', function () {
     app.quit()
   }
 })
+
+ipcMain.on('click', function(event, data){
+    console.log(data);
+	openBlockExplorer('http://pool.dero.io:8080/tx/'+data);
+});
 
 app.on('activate', function () {
   // On macOS it's common to re-create a window in the app when the

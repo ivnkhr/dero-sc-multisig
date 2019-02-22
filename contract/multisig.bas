@@ -1,6 +1,29 @@
 /* 	DEROMultisig
 	Multisig concept implementation on DVM-BASIC  
 	by @plrspro
+	
+	Structure:
+	There are three main logical units in this contract
+	wallet, transaction and signer
+
+	1. wallet internal account wich hold amount that belongs to this wallet from overall sc balance
+	2. each wallet contains on one ore more signers
+	3. any signer can create a transaction from asociated with him internal wallet to DERO address
+	4. all signers withing the wallet must sign the transaction
+	5. when last signer signs a transaction it eather sending dero to adress or become invalid if amount is larger the wallet balance
+	
+	Full detailed discussion: https://forum.dero.io/t/wip-dero-multisig-smart-contract/942
+	
+	User Flow Example:
+	
+	1. Create Wallet
+	2. Add another participants
+	3. Lock wallet
+	4. Deposit some funds
+	5. Create a transaction
+	6. All wallet participants should sign this transaction
+	* When last signer succsessfully signs funds will be sent over
+	
 */
 
 /* Service Functions and Utility */
