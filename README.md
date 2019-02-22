@@ -30,7 +30,9 @@ npm run start
 ```
 
 or use web hosted version
+```
 https://plrspro.github.io/dero-sc-multisig/interface/
+```
 
 or clone repo and run while computer isolated from public internet
 ```
