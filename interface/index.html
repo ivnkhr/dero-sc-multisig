@@ -160,7 +160,7 @@
       
       wallet_rpc = 'http://127.0.0.1:30307/';
       daemon_rpc = 'http://127.0.0.1:30306/';
-      scid = '280ae1f927f90b99ffc7cd27ce0370367bd7129ef781b67eb7e34f04d56b0fc0';
+      scid = '9d5f4a8bd55f0977b630b3b3af9d2dfc0a1d7277f70f81b3c90735e51af88bdb';
       
       var latest_call = '';
       var last_subj = '';
@@ -219,27 +219,42 @@
                 
               }else{
                 
+				//af99920736a61455481f46cacf53d443adbcd0797e0a88ee1182baaf22f55724
+				//"transaction_"+transaction+"_signer_"+signed_iterator
+				console.log(latest_call,data.txs[0].sc_keys);
+				
                 text = latest_call+": "+last_subj+"<br/>";
                 if( data.txs[0].sc_keys[Object.keys(data.txs[0].sc_keys)[0]] == "" ){
-                  text += "Not Found (your transaction might not get mined yet, or error occured on daemon (check local daemon output) please wait and retry)";
+                  text += "Not Found (your transaction might not get mined yet, or error occured on daemon (check local daemon output) please wait and retry";
                 }else{
-                  text += "<br/>Original creator: "+(data.txs[0].sc_keys[last_subj]);
-                  text += "<hr/>Can add new signers: "+( (parseInt(data.txs[0].sc_keys[last_subj+'_locked'])?'No':'Yes')  );
-                  text += "<br/>Can deposit: "+( (parseInt(data.txs[0].sc_keys[last_subj+'_locked'])?'Yes':'No (you need to lock wallet to be able to deposit)')  );
-                  text += "<br/>Balance: "+(data.txs[0].sc_keys[last_subj+'_balance']/1000000000000)+" DERO";
-                  text += "<br/>Signer count: "+( parseInt(data.txs[0].sc_keys[last_subj+'_signer_index'])+1 );
-                  text += "<hr/>Signer List:<br/>";
-                  text += "<br/> - "+(data.txs[0].sc_keys[last_subj+'_signer_0']);
-                  text += "<br/> - "+(data.txs[0].sc_keys[last_subj+'_signer_1']);
-                  text += "<br/> - "+(data.txs[0].sc_keys[last_subj+'_signer_2']);
-                  text += "<br/> - "+(data.txs[0].sc_keys[last_subj+'_signer_3']);
-                  text += "<br/> - "+(data.txs[0].sc_keys[last_subj+'_signer_4']);
-                  text += "<br/> - "+(data.txs[0].sc_keys[last_subj+'_signer_5']);
-                  text += "<br/> - "+(data.txs[0].sc_keys[last_subj+'_signer_6']);
-                  text += "<br/> - "+(data.txs[0].sc_keys[last_subj+'_signer_7']);
-                  text += "<br/> - "+(data.txs[0].sc_keys[last_subj+'_signer_8']);
-                  text += "<br/> - "+(data.txs[0].sc_keys[last_subj+'_signer_9']);   
-                  text += "<br/> - "+(data.txs[0].sc_keys[last_subj+'_signer_10']);
+				
+					if(latest_call=='Wallet'){
+					  text += "<br/>Original creator: "+(data.txs[0].sc_keys[last_subj]);
+					  text += "<hr/>Can add new signers: "+( (parseInt(data.txs[0].sc_keys[last_subj+'_locked'])?'No':'Yes')  );
+					  text += "<br/>Can deposit: "+( (parseInt(data.txs[0].sc_keys[last_subj+'_locked'])?'Yes':'No (you need to lock wallet to be able to deposit)')  );
+					  text += "<br/>Balance: "+(data.txs[0].sc_keys[last_subj+'_balance']/1000000000000)+" DERO";
+					  text += "<br/>Signer count: "+( parseInt(data.txs[0].sc_keys[last_subj+'_signer_index'])+1 );
+					  text += "<hr/>Signer List:<br/>";
+						for(z=0;z<15;z++){
+							text += "<br/> - "+(data.txs[0].sc_keys[last_subj+'_signer_'+z]);
+						}
+					}else{
+					  
+						text += "<br/>Transaction Wallet: "+(data.txs[0].sc_keys['transaction_'+last_subj+'_wallet']);
+						text += "<br/>Destination: "+(data.txs[0].sc_keys['transaction_'+last_subj]);
+					  text += "<hr/>Amount: "+(data.txs[0].sc_keys['transaction_'+last_subj+'_amount']/1000000000000)+" DERO";
+					  text += "<br/>Signed by: "+( parseInt(data.txs[0].sc_keys['transaction_'+last_subj+'_signatures_count']) )+' signer(s)';
+					  status = (data.txs[0].sc_keys['transaction_'+last_subj+'_executed']);
+					  if( status == 0 ){
+						text += "<br/>Transaction Status: "+"Open";
+					  }else if( status == 2 ){
+						text += "<br/>Transaction Status: "+"Invalid (Lack of funds)";
+					  }else{
+						text += "<br/>Transaction Status: "+"Closed (Successfully executed)";
+					  }
+					  
+					}
+				  
                 }
                 
                 $('.pre2').show();
@@ -281,29 +296,30 @@
                 last_subj = subj;
                 //alert(subj);
                 props = [subj,subj+'_balance',subj+'_locked',subj+'_signer_index'];
-                props.push(subj+"_signer_0");
-                props.push(subj+"_signer_1");
-                props.push(subj+"_signer_2");
-                props.push(subj+"_signer_3");
-                props.push(subj+"_signer_4");
-                props.push(subj+"_signer_5");
-                props.push(subj+"_signer_6");
-                props.push(subj+"_signer_7");
-                props.push(subj+"_signer_8");
-                props.push(subj+"_signer_9");
-                props.push(subj+"_signer_10");
+				
+				for(z=0;z<15;z++){
+					props.push(subj+"_signer_"+z);
+				}
+				
                 get_tx_sc_val(props);
               }
               if(latest_call=="Transaction"){
                 subj = $( "#transaction" ).val();
                 last_subj = subj;
-                get_tx_sc_val([
+				props = [
                   'transaction_'+subj,
                   'transaction_'+subj+'_amount',
                   'transaction_'+subj+'_wallet',
                   'transaction_'+subj+'_executed',
                   'transaction_'+subj+'_signatures_count',
-                ]);
+                ];
+				
+				//"transaction_"+transaction+"_signer_"+signed_iterator
+				for(z=0;z<15;z++){
+					props.push('transaction_'+subj+'_signer_'+z);
+				}
+				
+                get_tx_sc_val(props);
               }
             }
             
@@ -489,8 +505,6 @@
           <div class="contract-box bct1">
             
             <h2>`dero multisig interact`</h2>
-
-			<div class="deso"><div class="txs"><b>xxx</b></div></div>
 			
             <div class="input-state">
               <span>wallet rpc path</span>

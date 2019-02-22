@@ -345,7 +345,7 @@ Function TransactionCreateSend(wallet String, destination String, amount Uint64)
 	// Check if amount exist on `DEROMultisig Wallet` balance
 	40 DIM wallet_balance as Uint64
 	41 LET wallet_balance = LOAD(wallet+"_balance")
-	42 IF wallet_balance - amount >= 0 THEN GOTO 50
+	42 IF wallet_balance >= amount THEN GOTO 50 // Thanks @Nelbert442#5433 for this line
 	43 RETURN Error("The amount of DERO you requested to send ("+(amount/1000000000000)+") exceeding amount in `DEROMultisig Wallet` ("+(wallet_balance/1000000000000)+") instance balance.")
 	
 	// Check if signer is valid member of a given `DEROMultisig Wallet`, so he can create transactions
@@ -358,7 +358,7 @@ Function TransactionCreateSend(wallet String, destination String, amount Uint64)
 	55 IF signer_iterator > 0 THEN GOTO 52
 	56 RETURN Error("You are not a valid member (signer) of this `DEROMultisig Wallet` instance.")
 	
-	60 PRINTF("  ---------------------  ")
+	60 PRINTF "  ---------------------  "
 	
 	100 DIM transaction as String
 	101 LET transaction = TXID()
@@ -431,10 +431,10 @@ Function TransactionSign(transaction String) Uint64
 	45 IF signer_iterator > 0 THEN GOTO 42
 	46 RETURN Error("You are not a valid signer of this `DEROMultisig Transaction` instance.")
 	
-	50 IF EXISTS("transaction_"+transaction+"_signer_"+signer_iterator) == 1 THEN GOTO 60
+	50 IF EXISTS("transaction_"+transaction+"_signer_"+signer_iterator) == 0 THEN GOTO 60
 	51 RETURN Error("This `DEROMultisig Transaction` is already signed by you.")
 	
-	60 PRINTF("  ---------------------  ")
+	60 PRINTF "  ---------------------  "
 	
 	// Previous checkup will find signers index and next operation will set a heigh on wich signer confirmed this transaction
 	100 STORE("transaction_"+transaction+"_signer_"+signer_iterator, BLOCK_HEIGHT()) //First signer will be executors address
