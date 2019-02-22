@@ -1,5 +1,6 @@
 <html>
   <head>
+	<title>`DERO Multisig`</title>
     <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous" onload="window.$ = window.jQuery = module.exports;"></script>
   	<link href="https://fonts.googleapis.com/css?family=Major+Mono+Display|Sarabun" rel="stylesheet">
   	<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.7.3/p5.min.js"></script>
@@ -10,6 +11,17 @@
         font-family: 'Major Mono Display', monospace;
       }
       
+	  .electron-switch, .instances{
+		display: none;
+	  }
+	  
+	  .instances div{
+	  
+		  padding: 4px;
+		  border-radius: 4px;
+		  font-family: 'Sarabun', sans-serif;
+	  }
+	  
       .row{
         display: flex;
       }
@@ -124,11 +136,14 @@
     	if (userAgent.indexOf(' electron/') > -1) {
     	   // Electron-specific code
     	   var mode = 'electron';
+		   $(document).ready(function(){
+				$('.electron-switch').show();
+		   });
     	}
       
       wallet_rpc = 'http://127.0.0.1:30307/';
       daemon_rpc = 'http://127.0.0.1:30306/';
-      scid = '6903fd74504405053dd07410cbf4b25649e6612123fe50c83b56f09c8f6bb63c';
+      scid = 'd91eb4d326e3da20ae71be066fdef6c10dfba541643c9ff1da3bbe119a5082f5';
       
       var latest_call = '';
       var last_subj = '';
@@ -189,7 +204,7 @@
                 
                 text = latest_call+": "+last_subj+"<br/>";
                 if( data.txs[0].sc_keys[Object.keys(data.txs[0].sc_keys)[0]] == "" ){
-                  text += "Not Found (your transaction might not get mined yet, please wait and retry)";
+                  text += "Not Found (your transaction might not get mined yet, or error occured on daemon (check local daemon output) please wait and retry)";
                 }else{
                   text += "<br/>Original creator: "+(data.txs[0].sc_keys[last_subj]);
                   text += "<hr/>Can add new signers: "+( (parseInt(data.txs[0].sc_keys[last_subj+'_locked'])?'No':'Yes')  );
@@ -322,10 +337,47 @@
                 var xhr = new XMLHttpRequest();
                 xhr.withCredentials = true;
 
+				/*
+				  <div class="button act1" data-command="WalletCreate">Setup Wallet (Anyone)</div>
+				  <div class="button act1" data-command="WalletAddSigner" data-params="wallet,signer">Add Signer to a Wallet (Wallet Creator)</div>
+				  <div class="button act1" data-command="WalletLock" data-params="wallet">Finalize Wallet (Wallet Creator)</div>
+				  <div class="button act1" data-command="WalletDeposit" data-params="wallet,value">Deposit Funds to a Wallet (Anyone)</div>
+				  
+				  <div class="button act1" data-command="WalletCreateAndLockWithOneAdditionalSigner" data-params="signer1,value">Create, Add 1 Signer, Finalize, Deposit (Anyone)</div>
+				  <div class="button act1" data-command="WalletCreateAndLockWithTwoAdditionalSigners" data-params="signer1,signer2">Create, Add 2 signers, Finalize, Deposit (Anyone)</div>
+				  <div class="button act1" data-command="WalletCreateAndLockWithThreeAdditionalSigners" data-params="signer1,signer2,signer3">Create, Add 3 Signers, Finalize, Deposit (Anyone)</div>
+				  <div class="button act1" data-command="WalletCreateAndLockWithFourAdditionalSigners" data-params="signer1,signer2,signer3,signer4">Create, Add 4 Signers, Finalize, Deposit (Anyone)</div>
+				  <div class="button act1" data-command="WalletCreateAndLockWithFiveAdditionalSigners" data-params="signer1,signer2,signer3,signer4,signer5">Create, Add 5 Signers, Finalize, Deposit (Anyone)</div>
+
+				  <div class="button act1" data-command="TransactionCreateSend" data-params="wallet,destination,amount">Create Transaction (Wallet Member)</div>
+				  <div class="button act1" data-command="TransactionCreateWithdraw" data-params="wallet,amount">Withdraw To Yourself (Wallet Member)</div>
+				  <div class="button act1" data-command="TransactionSign" data-params="transaction">Sign Transaction (Wallet Member)</div>
+				*/
+				
                 xhr.addEventListener("readystatechange", function () {
                   console.log(this.readyState, xhr);
                   if (this.readyState === 4) {
-                    text = ''+active_cmd+'<hr/>';
+                    text = '<b>'+active_cmd+'</b><hr/>';
+					
+					//console.log(.);
+					if( 
+						active_cmd == 'WalletCreate' || 
+						active_cmd == 'WalletCreateAndLockWithOneAdditionalSigner' || 
+						active_cmd == 'WalletCreateAndLockWithTwoAdditionalSigners' ||
+						active_cmd == 'WalletCreateAndLockWithThreeAdditionalSigners' ||
+						active_cmd == 'WalletCreateAndLockWithFourAdditionalSigners' ||
+						active_cmd == 'WalletCreateAndLockWithFiveAdditionalSigners'
+					){
+						text = '<div style="background-color: black; font-size: 17px; color: lime;">Your Wallet ID:<br/><b>'+JSON.parse(xhr.response).result.tx_hash_list[0]+'</b></div><hr/>';
+						$('.instances').show().append('<div style="background-color: black; font-size: 15px; color: lime;">Wallet: <b>'+JSON.parse(xhr.response).result.tx_hash_list[0]+'</b></div>');
+					} else if (
+						active_cmd == 'TransactionCreateSend' || 
+						active_cmd == 'TransactionCreateWithdraw'
+					){
+						text = '<div style="background-color: black; font-size: 17px; color: magenta;">Your Transaction ID:<br/><b>'+JSON.parse(xhr.response).result.tx_hash_list[0]+'</b></div><hr/>';
+						$('.instances').show().append('<div style="background-color: black; font-size: 15px; color: magenta;">Transaction: <b>'+JSON.parse(xhr.response).result.tx_hash_list[0]+'</b></div>');
+					}
+
                     text += JSON.stringify(data)+'<hr/>';
                     text += JSON.stringify(xhr.response)+'<hr/>';
                     $('.pre1').html( text );
@@ -442,10 +494,10 @@
               <div class="button act1" data-command="WalletDeposit" data-params="wallet,value">Deposit Funds to a Wallet (Anyone)</div>
               <center>or use 1 tx alias</center>
               <div class="button act1" data-command="WalletCreateAndLockWithOneAdditionalSigner" data-params="signer1,value">Create, Add 1 Signer, Finalize, Deposit (Anyone)</div>
-              <div class="button act1" data-command="WalletCreateAndLockWithTwoAdditionalSigners" data-params="signer1,signer2">Create, Add 2 signers, Finalize (Anyone)</div>
-              <div class="button act1" data-command="WalletCreateAndLockWithThreeAdditionalSigners" data-params="signer1,signer2,signer3">Create, Add 3 Signers, Finalize (Anyone)</div>
-              <div class="button act1" data-command="WalletCreateAndLockWithFourAdditionalSigners" data-params="signer1,signer2,signer3,signer4">Create, Add 4 Signers, Finalize (Anyone)</div>
-              <div class="button act1" data-command="WalletCreateAndLockWithFiveAdditionalSigners" data-params="signer1,signer2,signer3,signer4,signer5">Create, Add 5 Signers, Finalize (Anyone)</div>
+              <div class="button act1" data-command="WalletCreateAndLockWithTwoAdditionalSigners" data-params="signer1,signer2">Create, Add 2 signers, Finalize, Deposit (Anyone)</div>
+              <div class="button act1" data-command="WalletCreateAndLockWithThreeAdditionalSigners" data-params="signer1,signer2,signer3">Create, Add 3 Signers, Finalize, Deposit (Anyone)</div>
+              <div class="button act1" data-command="WalletCreateAndLockWithFourAdditionalSigners" data-params="signer1,signer2,signer3,signer4">Create, Add 4 Signers, Finalize, Deposit (Anyone)</div>
+              <div class="button act1" data-command="WalletCreateAndLockWithFiveAdditionalSigners" data-params="signer1,signer2,signer3,signer4,signer5">Create, Add 5 Signers, Finalize, Deposit (Anyone)</div>
               <br/>
               <h5><center>transaction commands</center></h5>
               <div class="button act1" data-command="TransactionCreateSend" data-params="wallet,destination,amount">Create Transaction (Wallet Member)</div>
@@ -456,7 +508,7 @@
 
             <section id="confirm" style="display: none;">
               <br/>
-              <h2>`confirm interaction`</h2>
+              <h2>`confirm interaction` <select class="electron-switch" onchange="mode=this.value"><option value="electron">Wallet RPC</option><option value="regular">CURL Request</option></select></h2>
 
               <div class="methods">
                 <div id="params"></div>
@@ -508,7 +560,14 @@
                 Loading...
               </div>
             </section>
-          
+			
+            <br/>
+			<div class="instances">
+            <h2>`recent instances`</h2>
+            
+              
+            </div>
+			
           </div>
 
   	   </td>

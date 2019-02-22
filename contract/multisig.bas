@@ -194,7 +194,10 @@ Function WalletCreateAndLockWithTwoAdditionalSigners(signer1 String, signer2 Str
 	40 IF WalletLock(wallet) == 0 THEN GOTO 50
 	41 RETURN 1
 	
-	50 PRINTF "  ---------------------  "
+	50 IF WalletDeposit(wallet, value) == 0 THEN GOTO 60
+	51 RETURN 1
+	
+	60 PRINTF "  ---------------------  "
 	
 	999 RETURN 0
 End Function
@@ -221,7 +224,10 @@ Function WalletCreateAndLockWithThreeAdditionalSigners(signer1 String, signer2 S
 	50 IF WalletLock(wallet) == 0 THEN GOTO 60
 	51 RETURN 1
 	
-	60 PRINTF "  ---------------------  "
+	60 IF WalletDeposit(wallet, value) == 0 THEN GOTO 70
+	61 RETURN 1
+	
+	70 PRINTF "  ---------------------  "
 	
 	999 RETURN 0
 End Function
@@ -251,7 +257,10 @@ Function WalletCreateAndLockWithFourAdditionalSigners(signer1 String, signer2 St
 	60 IF WalletLock(wallet) == 0 THEN GOTO 70
 	61 RETURN 1
 	
-	70 PRINTF "  ---------------------  "
+	70 IF WalletDeposit(wallet, value) == 0 THEN GOTO 80
+	71 RETURN 1
+	
+	80 PRINTF "  ---------------------  "
 	
 	999 RETURN 0
 End Function
@@ -284,7 +293,10 @@ Function WalletCreateAndLockWithFiveAdditionalSigners(signer1 String, signer2 St
 	70 IF WalletLock(wallet) == 0 THEN GOTO 80
 	71 RETURN 1
 	
-	80 PRINTF "  ---------------------  "
+	80 IF WalletDeposit(wallet, value) == 0 THEN GOTO 90
+	81 RETURN 1
+	
+	90 PRINTF "  ---------------------  "
 	
 	999 RETURN 0
 End Function

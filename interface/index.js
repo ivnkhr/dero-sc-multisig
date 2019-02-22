@@ -1,9 +1,23 @@
 // Modules to control application life and create native browser window
-const {app, BrowserWindow} = require('electron')
+const {app, BrowserWindow, Menu, MenuItem} = require('electron')
+path = require('path');
+url = require('url');
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow
+let explorerWindow
+
+function openBlockExplorer(url) {
+  explorerWindow = new BrowserWindow({
+    width: 800,
+    height: 600,
+    webPreferences: {
+      nodeIntegration: false
+    }
+  });
+  explorerWindow.loadURL(url);
+}
 
 function createWindow () {
   // Create the browser window.
@@ -12,6 +26,49 @@ function createWindow () {
   // and load the index.html of the app.
   mainWindow.loadFile('index.html')
 
+  
+  
+	var template = [
+			{
+				label: "Application",
+				submenu: [
+					{
+						label: "Debug Console",
+						click: function () { mainWindow.webContents.openDevTools() }
+					},
+					{
+						label: "Contract Git",
+						click: function () { openBlockExplorer('https://github.com/plrspro/dero-sc-multisig') }
+					},
+					{
+						label: "Exit",
+						click: function () { app.exit(0) }
+					}
+				]
+			},
+			{
+				label: "Utilities",
+				submenu: [
+					{
+						label: "Blockexplorer (testnet)",
+						click: function () { openBlockExplorer('http://pool.dero.io:8080/') }
+					},
+					{
+						label: "Relaunch",
+						click: function () { 
+						  app.relaunch({ args: process.argv.slice(1).concat(['--relaunch']) })
+						  app.exit(0)
+						}
+					}
+				]
+			}
+		];        
+	// build menu from template
+	var menu = Menu.buildFromTemplate(template);  
+
+  Menu.setApplicationMenu(menu); 
+  
+  
   // Open the DevTools.
   // mainWindow.webContents.openDevTools()
 

@@ -1,0 +1,1 @@
+FOR /D %%i IN (D:\DEROSC\dappgit\dero-sc-multisig\tmpbuilds\*.) DO "C:\Program Files\7-Zip\7z.exe" -tzip a "D:\DEROSC\dappgit\dero-sc-multisig\builds\%%~ni.zip" "%%i"
