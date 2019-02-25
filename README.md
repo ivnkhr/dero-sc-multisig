@@ -1,4 +1,8 @@
 # `DEROMultisig`: Multisig Implementation SmartContract
+
+`Contract is designed to enable multisig controll over the same funds, with multiple parties requred to approve outgoing transactions`
+
+
 Finite version of multisig wallet concept
 
 
