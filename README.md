@@ -39,5 +39,10 @@ or clone repo and run while computer isolated from public internet
 interface/index.html
 ```
 
+or interact directly via curl
 
 - Step 3
+
+How to use with Electron App: here
+
+How to use with Wallet: here
