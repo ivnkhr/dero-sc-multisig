@@ -43,6 +43,8 @@ or interact directly via curl
 
 - Step 3
 
-How to use with Electron App: here
+*How to use with Electron App (GUI): here*
 
-How to use with Wallet: here
+How to use with Wallet (CLI):
+
+
