@@ -43,7 +43,7 @@ or interact directly via curl
 
 - Step 3
 
-How to use with Electron App (GUI): [Video Guide Here](https://plrspro.github.io/dero-sc-multisig/interface/)
+**How to use with Electron App (GUI)**: [Video Guide Here](https://plrspro.github.io/dero-sc-multisig/interface/)
 
 How to use with Wallet (CLI) further down
 
