@@ -76,9 +76,13 @@ curl -X POST http://127.0.0.1:30307/json_rpc -H "Content-Type: application/json"
 curl -X POST http://127.0.0.1:30307/json_rpc -H "Content-Type: application/json" -d "{\"jsonrpc\":\"2.0\",\"id\":\"0\",\"method\":\"transfer_split\",\"params\":{\"mixin\":5,\"get_tx_key\":true,\"sc_tx\":{\"entrypoint\":\"WalletCreateAndLockWithOneAdditionalSigner\",\"scid\":\"4036c7ae3c0be674174d395a8c77fedb859b86e4b8dbe2279ac06d6b38764140\",\"params\":{\"signer1\":\"<VALID DERO ADDRESS>\"},\"value\":1000000000000}}}"
 ```
 *WalletCreateAndLockWithOneAdditionalSigner* (for you and 1 additional signer)
+
 *WalletCreateAndLockWithTwoAdditionalSigners* (for you and 2 additional signer)
+
 *WalletCreateAndLockWithThreeAdditionalSigners* (for you and 3 additional signer)
+
 *WalletCreateAndLockWithFourAdditionalSigners* (for you and 4 additional signer)
+
 *WalletCreateAndLockWithFiveAdditionalSigners* (for you and 5 additional signer)
 
 5. Now you can create transactions (wich everyone needs to sign via (TransactionSign) method in order to be executed
