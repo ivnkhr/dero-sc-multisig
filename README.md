@@ -5,6 +5,9 @@
 
 Finite version of multisig wallet concept
 
+DOWNLOAD:
+
+https://youtu.be/-3wagBUybBI
 
 Use the officialy hosted contract here:
 https://plrspro.github.io/dero-sc-multisig/interface/
