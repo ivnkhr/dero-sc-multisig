@@ -7,7 +7,9 @@ Finite version of multisig wallet concept
 
 # DOWNLOAD: https://github.com/plrspro/dero-sc-multisig/releases
 
-https://youtu.be/-3wagBUybBI
+<a href="http://www.youtube.com/watch?feature=player_embedded&v=-3wagBUybBI
+" target="_blank"><img src="http://img.youtube.com/vi/-3wagBUybBI/0.jpg" 
+alt="IMAGE ALT TEXT HERE" width="240" height="180" border="10" /></a>
 
 Use the officialy hosted contract here:
 https://plrspro.github.io/dero-sc-multisig/interface/
@@ -50,7 +52,7 @@ or interact directly via curl
 
 - Step 3
 
-**How to use with Electron App (GUI)**: [Video Guide Here](https://plrspro.github.io/dero-sc-multisig/interface/)
+**How to use with Electron App (GUI)**: [Video Guide Here](https://youtu.be/-3wagBUybBI)
 
 How to use with Wallet (CLI) further down
 
