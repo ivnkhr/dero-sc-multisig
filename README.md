@@ -5,7 +5,7 @@
 
 Finite version of multisig wallet concept
 
-DOWNLOAD:
+# DOWNLOAD: https://github.com/plrspro/dero-sc-multisig/releases
 
 https://youtu.be/-3wagBUybBI
 
